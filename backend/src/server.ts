@@ -1,5 +1,4 @@
 import http from 'http';
-
 import 'express-async-errors';
 import { winstonLogger } from './shared/logger';
 import { Logger } from 'winston';
@@ -49,6 +48,19 @@ function securityMiddleware(app: Application): void {
     }
     next();
   });
+  app.use('/health', (_req: Request, res: Response): void => {
+    try {
+        res.status(200).json({
+            status: 'healthy',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            status: 'unhealthy',
+            error: error?.message
+        });
+    }
+});
 }
 
 function standardMiddleware(app: Application): void {
@@ -67,7 +79,7 @@ async function startQueues(): Promise<void> {
 
 function startElasticSearch(): void {
   checkConnection();
-//   createIndex('gigs');
+//   createIndex('matches');
 }
 
 function errorHandler(app: Application): void {
@@ -81,11 +93,11 @@ function errorHandler(app: Application): void {
 function startServer(app: Application): void {
   try {
     const httpServer: http.Server = new http.Server(app);
-    log.info(`Authentication server has started with process id ${process.pid}`);
+    log.info(`Server has started with process id ${process.pid}`);
     httpServer.listen(SERVER_PORT, () => {
-      log.info(`Authentication server running on port ${SERVER_PORT}`);
+      log.info(`Server running on port ${SERVER_PORT}`);
     });
   } catch (error) {
-    log.log('error', 'AuthService startServer() method error:', error);
+    log.log('error', 'startServer() method error:', error);
   }
 }

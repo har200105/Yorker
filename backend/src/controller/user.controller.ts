@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { UserModel } from "src/models/user";
 
-const SECRET_KEY = process.env.JWT_SECRET || "akipiD";
+const ACCESS_TOKEN_SECRET_KEY = process.env.ACCESS_TOKEN_SECRET_KEY || "akipiD";
+const REFRESH_TOKEN_SECRET_KEY = process.env.REFRESH_TOKEN_SECRET_KEY || "okay";
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -27,11 +28,15 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = jwt.sign({ id: user.dataValues.id, username: user.dataValues.username }, SECRET_KEY, {
+    const accessToken = jwt.sign({ id: user.dataValues.id, username: user.dataValues.username }, ACCESS_TOKEN_SECRET_KEY, {
       expiresIn: "1d",
     });
+    
+    const refreshToken = jwt.sign({ id: user.dataValues.id, username: user.dataValues.username }, REFRESH_TOKEN_SECRET_KEY, {
+      expiresIn: "10d",
+    });
 
-    res.status(200).json({ message: "User logged in successfully", token });
+    res.status(200).json({ message: "User logged in successfully", accessToken,refreshToken });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal server error" });
