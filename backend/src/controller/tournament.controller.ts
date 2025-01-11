@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TournamentModel } from 'src/models/tournament';
+import { TournamentModel } from '../models/tournament';
 
 export const getAllTournaments = async (_req: Request, res: Response): Promise<void> => {
     try {

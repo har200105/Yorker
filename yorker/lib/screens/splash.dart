@@ -20,14 +20,12 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Logo (Optional)
               Icon(
                 Icons.sports_cricket,
                 size: 100,
                 color: Colors.white,
               ),
               SizedBox(height: 20),
-              // App Name
               Text(
                 'Yorker',
                 style: TextStyle(
@@ -38,7 +36,6 @@ class SplashScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 10),
-              // Tagline (Optional)
               Text(
                 'Your Ultimate Cricket Fantasy',
                 style: TextStyle(
@@ -47,7 +44,6 @@ class SplashScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 50),
-              // Loading Indicator
               CircularProgressIndicator(
                 color: Colors.white,
               ),

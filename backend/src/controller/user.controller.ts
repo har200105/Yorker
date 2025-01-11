@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { UserModel } from "src/models/user";
+import { compare, hash } from "bcryptjs";
+import { UserInstance, UserModel } from "../models/user";
 
-const ACCESS_TOKEN_SECRET_KEY = process.env.ACCESS_TOKEN_SECRET_KEY || "akipiD";
-const REFRESH_TOKEN_SECRET_KEY = process.env.REFRESH_TOKEN_SECRET_KEY || "okay";
+const ACCESS_TOKEN_SECRET_KEY = "your_access_token_secret";
+const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -17,28 +18,46 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const user = await UserModel.findOne({ where: { username } });
 
     if (!user) {
+      const hashedPassword = await hash(password, 10);
+      console.log(hashedPassword);
+      const newUser = await UserModel.create({
+        username,
+        password: hashedPassword
+      });
+
+      const tokens = generateTokens(newUser);
+      res.status(201).json({ message: "User created", ...tokens });
+      return;
+    }
+
+    const isPasswordValid = await compare(password,user.dataValues.password);
+    console.log(isPasswordValid);
+
+    if (!isPasswordValid) {
       res.status(401).json({ error: "Invalid username or password" });
       return;
     }
 
-    const isPasswordValid = await UserModel.prototype.comparePassword(password);
-
-    if (!isPasswordValid) {
-      res.status(401).json({ error: "This username is selected already" });
-      return;
-    }
-
-    const accessToken = jwt.sign({ id: user.dataValues.id, username: user.dataValues.username }, ACCESS_TOKEN_SECRET_KEY, {
-      expiresIn: "1d",
-    });
-    
-    const refreshToken = jwt.sign({ id: user.dataValues.id, username: user.dataValues.username }, REFRESH_TOKEN_SECRET_KEY, {
-      expiresIn: "10d",
-    });
-
-    res.status(200).json({ message: "User logged in successfully", accessToken,refreshToken });
+    const tokens = generateTokens(user);
+    res.status(200).json({ message: "User logged in", ...tokens });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+const generateTokens = (user: UserInstance) => {
+  const accessToken = jwt.sign(
+    { id: user.id, username: user.username },
+    ACCESS_TOKEN_SECRET_KEY,
+    { expiresIn: "1d" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user.id, username: user.username },
+    REFRESH_TOKEN_SECRET_KEY,
+    { expiresIn: "10d" }
+  );
+
+  return { accessToken, refreshToken };
 };

@@ -1,18 +1,21 @@
 import { sequelize } from '../database';
 import { DataTypes, ModelDefined, Optional } from 'sequelize';
-import { TeamModel } from './team';
 
 interface Player {
   id: string;
   name: string;
   teamId: string;
   role: 'batsman' | 'bowler' | 'allrounder' | 'wicketkeeper';
-  points: number;
 }
 
 type PlayerCreationAttributes = Optional<Player, 'id'>;
 
 const PlayerModel: ModelDefined<Player, PlayerCreationAttributes> = sequelize.define('players', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -24,14 +27,9 @@ const PlayerModel: ModelDefined<Player, PlayerCreationAttributes> = sequelize.de
   role: {
     type: DataTypes.ENUM('batsman', 'bowler', 'allrounder', 'wicketkeeper'),
     allowNull: false,
-  },
-  points: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-  },
+  }
 });
 
 // Associations
-PlayerModel.belongsTo(TeamModel, { foreignKey: 'teamId' });
 
 export { PlayerModel };

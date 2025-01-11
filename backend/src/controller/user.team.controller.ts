@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { MatchModel } from 'src/models/match';
-import { PlayerModel } from 'src/models/player';
-import { UserTeamModel, UserTeamPlayerModel } from 'src/models/userTeam';
+import { MatchModel } from '../models/match';
+import { PlayerModel } from '../models/player';
+import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { Op } from 'sequelize';
 
 export const createUserTeam = async (req: Request, res: Response): Promise<void> => {
@@ -87,6 +87,7 @@ export const createUserTeam = async (req: Request, res: Response): Promise<void>
 };
 
 export const getUserTeams = async (req: Request, res: Response): Promise<void> => {
+  console.log("called");
   try {
     const userTeams = await UserTeamModel.findAll({
       where: {
@@ -95,12 +96,21 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
       include: [
         {
           model: UserTeamPlayerModel,
-          include: [PlayerModel],
+          as: 'user_team_players',
+          include: [
+            {
+              model: PlayerModel,
+            },
+          ],
         },
+        {
+          model: MatchModel,
+          as: 'match'
+        }
       ],
     });
 
-    res.status(200).json(userTeams);
+    res.status(200).json({userTeams});
   } catch (error) {
     console.error("Error fetching user teams:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams" });
@@ -109,6 +119,7 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
 
 export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log("calledhh");
     const matchId = req.params.matchId;
 
     const userTeams = await UserTeamModel.findAll({
@@ -124,7 +135,7 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
       ],
     });
 
-    res.status(200).json(userTeams);
+    res.status(200).json({userTeams});
   } catch (error) {
     console.error("Error fetching user teams for the match:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams for the match" });

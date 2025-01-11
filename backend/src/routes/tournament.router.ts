@@ -1,5 +1,5 @@
 import express from "express";
-import { getAllTournaments } from "src/controller/tournament.controller";
+import { getAllTournaments } from "../controller/tournament.controller";
 
 const tournamentRouter = express.Router();
 

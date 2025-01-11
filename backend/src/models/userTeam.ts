@@ -1,8 +1,5 @@
 import { sequelize } from '../database';
 import { DataTypes, ModelDefined, Optional } from 'sequelize';
-import { UserModel } from './user';
-import { MatchModel } from './match';
-import { PlayerModel } from './player';
 
 interface UserTeam {
   id: string;
@@ -25,6 +22,11 @@ type UserTeamPlayerCreationAttributes = Optional<UserTeamPlayer, 'id'>;
 const UserTeamModel: ModelDefined<UserTeam, UserTeamCreationAttributes> = sequelize.define(
   'user_teams',
   {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+    },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -33,20 +35,17 @@ const UserTeamModel: ModelDefined<UserTeam, UserTeamCreationAttributes> = sequel
       type: DataTypes.UUID,
       allowNull: false,
     },
-  },
-  {
-    indexes: [
-      {
-        unique: true,
-        fields: ['userId', 'matchId'], // Ensure one team per user per match
-      },
-    ],
   }
 );
 
 const UserTeamPlayerModel: ModelDefined<UserTeamPlayer, UserTeamPlayerCreationAttributes> = sequelize.define(
   'user_team_players',
   {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+    },
     userTeamId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -82,11 +81,5 @@ const UserTeamPlayerModel: ModelDefined<UserTeamPlayer, UserTeamPlayerCreationAt
 );
 
 // Associations
-UserTeamModel.belongsTo(UserModel, { foreignKey: 'userId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-UserTeamModel.belongsTo(MatchModel, { foreignKey: 'matchId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-UserTeamModel.hasMany(UserTeamPlayerModel, { foreignKey: 'userTeamId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-
-UserTeamPlayerModel.belongsTo(UserTeamModel, { foreignKey: 'userTeamId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
-UserTeamPlayerModel.belongsTo(PlayerModel, { foreignKey: 'playerId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
 export { UserTeamModel, UserTeamPlayerModel };

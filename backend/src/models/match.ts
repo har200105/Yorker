@@ -1,7 +1,6 @@
 import { sequelize } from '../database';
 import { DataTypes, ModelDefined, Optional } from 'sequelize';
-import { TournamentModel } from './tournament';
-import { TeamModel } from './team';
+
 
 interface Match {
   id: string;
@@ -17,6 +16,11 @@ interface Match {
 type MatchCreationAttributes = Optional<Match, 'id'>;
 
 const MatchModel: ModelDefined<Match, MatchCreationAttributes> = sequelize.define('matches', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+  },
   name:{
     type: DataTypes.STRING,
     allowNull: false
@@ -47,9 +51,5 @@ const MatchModel: ModelDefined<Match, MatchCreationAttributes> = sequelize.defin
   },
 });
 
-// Associations
-MatchModel.belongsTo(TournamentModel, { foreignKey: 'tournamentId' });
-MatchModel.belongsTo(TeamModel, { foreignKey: 'teamAId', as: 'teamA' });
-MatchModel.belongsTo(TeamModel, { foreignKey: 'teamBId', as: 'teamB' });
 
 export { MatchModel };

@@ -1,6 +1,5 @@
 import { sequelize } from '../database';
 import { DataTypes, ModelDefined, Optional } from 'sequelize';
-import { MatchModel } from './match';
 
 interface Tournament {
   id: string;
@@ -8,12 +7,18 @@ interface Tournament {
   startDate: Date;
   endDate: Date;
   isActive: boolean;
+  tournamentLogo: string;
   status: 'upcoming' | 'ongoing' | 'completed';
 }
 
 type TournamentCreationAttributes = Optional<Tournament, 'id'>;
 
 const TournamentModel: ModelDefined<Tournament, TournamentCreationAttributes> = sequelize.define('tournaments', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -26,6 +31,10 @@ const TournamentModel: ModelDefined<Tournament, TournamentCreationAttributes> = 
     type: DataTypes.DATE,
     allowNull: false,
   },
+  tournamentLogo:{
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   status: {
     type: DataTypes.ENUM('upcoming', 'ongoing', 'completed'),
     allowNull: false,
@@ -36,7 +45,5 @@ const TournamentModel: ModelDefined<Tournament, TournamentCreationAttributes> = 
   }
 });
 
-// Associations
-TournamentModel.hasMany(MatchModel, { foreignKey: 'tournamentId' });
 
 export { TournamentModel };

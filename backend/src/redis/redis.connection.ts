@@ -1,6 +1,6 @@
 import { createClient } from 'redis';
-import { config } from 'src/config';
-import { winstonLogger } from 'src/shared/logger';
+import { config } from '../config';
+import { winstonLogger } from '../shared/logger';
 import { Logger } from 'winston';
 
 type RedisClient = ReturnType<typeof createClient>;

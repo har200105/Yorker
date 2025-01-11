@@ -1,25 +1,36 @@
 import { sequelize } from "../database";
-import { compare, hash } from "bcryptjs";
-import { DataTypes, Model, ModelDefined, Optional } from "sequelize";
-import { IAuthDocument } from "src/types/auth";
+import { DataTypes, Model, Optional } from "sequelize";
 
-const SALT_ROUND = 10;
-
-interface UserModelInstance extends Model<IAuthDocument, UserCreationAttributes> {
-  comparePassword(password: string): Promise<boolean>;
-  hashPassword(password: string): Promise<string>;
+interface UserAttributes {
+  id: string;
+  username: string;
+  password: string;
+  email?: string;
+  createdAt?: Date;
 }
 
-type UserCreationAttributes = Optional<IAuthDocument, "id" | "createdAt">;
+type UserCreationAttributes = Optional<UserAttributes, "id" | "createdAt">;
 
-const UserModel: ModelDefined<IAuthDocument, UserCreationAttributes> & {
-  prototype: UserModelInstance;
-} = sequelize.define(
-  "auths",
+export class UserInstance extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  id!: string;
+  username!: string;
+  password!: string;
+  email?: string;
+  createdAt?: Date;
+}
+
+export const UserModel = sequelize.define<UserInstance>(
+  "users",
   {
+    id: {
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
+    },
     username: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     password: {
       type: DataTypes.STRING,
@@ -27,42 +38,12 @@ const UserModel: ModelDefined<IAuthDocument, UserCreationAttributes> & {
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
+      unique: true,
     },
     createdAt: {
       type: DataTypes.DATE,
-      defaultValue: Date.now,
+      defaultValue: DataTypes.NOW,
     },
-  },
-  {
-    indexes: [
-      {
-        unique: true,
-        fields: ["email"],
-      },
-      {
-        unique: true,
-        fields: ["username"],
-      },
-    ],
   }
-) as ModelDefined<IAuthDocument, UserCreationAttributes> & {
-  prototype: UserModelInstance;
-};
-
-UserModel.addHook("beforeCreate", async (auth: Model) => {
-  const hashedPassword: string = await hash(auth.getDataValue("password"), SALT_ROUND);
-  auth.setDataValue("password", hashedPassword);
-});
-
-UserModel.prototype.comparePassword = async function (password: string): Promise<boolean> {
-  return compare(password, this.getDataValue("password"));
-};
-
-UserModel.prototype.hashPassword = async function (password: string): Promise<string> {
-  return hash(password, SALT_ROUND);
-};
-
-UserModel.sync({});
-
-export { UserModel };
+);

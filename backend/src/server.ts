@@ -8,25 +8,38 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { verify } from 'jsonwebtoken';
 import compression from 'compression';
-import { checkConnection } from './shared/elasticsearch';
+// import { checkConnection } from './shared/elasticsearch';
 import { appRoutes } from './routes';
 import { Channel } from 'amqplib';
 import { config } from './config';
-import { createConnection } from './queues/connection';
+// import { createConnection } from './queues/connection';
+import { associate } from './models';
+import { UserModel } from './models/user';
+
 
 const SERVER_PORT = 4002;
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'authenticationServer', 'debug');
+const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'yorkerServer', 'debug');
 
 export let authChannel: Channel;
+
+declare global {
+  namespace Express {
+    interface Request {
+      currentUser?: any;
+    }
+  }
+}
+
 
 export function start(app: Application): void {
   securityMiddleware(app);
   standardMiddleware(app);
   routesMiddleware(app);
-  startQueues();
-  startElasticSearch();
+  // startQueues();
+  // startElasticSearch();
   errorHandler(app);
   startServer(app);
+  associate();
 }
 
 function securityMiddleware(app: Application): void {
@@ -40,27 +53,33 @@ function securityMiddleware(app: Application): void {
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
   );
-  app.use((req: Request , _res: Response, next: NextFunction) => {
+  app.use(async (req: Request, _res: Response, next: NextFunction) => {
     if (req.headers.authorization) {
+      console.log("here")
       const token = req.headers.authorization.split(' ')[1];
-      const payload: any = verify(token, config.JWT_TOKEN!) as any;
-      req.currentUser = payload as any;
+      const payload = verify(token, "your_access_token_secret") as any;
+      const user = await UserModel.findByPk(payload.id, {
+        attributes: { exclude: ['password'] },
+        raw: true
+      });
+      req.currentUser = user;
+      console.log(user);
     }
     next();
   });
   app.use('/health', (_req: Request, res: Response): void => {
     try {
-        res.status(200).json({
-            status: 'healthy',
-            timestamp: new Date().toISOString()
-        });
+      res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString()
+      });
     } catch (error: any) {
-        res.status(500).json({
-            status: 'unhealthy',
-            error: error?.message
-        });
+      res.status(500).json({
+        status: 'unhealthy',
+        error: error?.message
+      });
     }
-});
+  });
 }
 
 function standardMiddleware(app: Application): void {
@@ -73,19 +92,19 @@ function routesMiddleware(app: Application): void {
   appRoutes(app);
 }
 
-async function startQueues(): Promise<void> {
-  authChannel = await createConnection() as Channel;
-}
+// async function startQueues(): Promise<void> {
+//   authChannel = await createConnection() as Channel;
+// }
 
-function startElasticSearch(): void {
-  checkConnection();
-//   createIndex('matches');
-}
+// function startElasticSearch(): void {
+//   checkConnection();
+// //   createIndex('matches');
+// }
 
 function errorHandler(app: Application): void {
   app.use((error: any, _req: Request, res: Response, next: NextFunction) => {
     log.log('error', `${error.comingFrom}:`, error);
-      res.status(error.statusCode).json(error.serializeErrors());
+    res.status(error.statusCode).json(error.serializeErrors());
     next();
   });
 }

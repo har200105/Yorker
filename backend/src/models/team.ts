@@ -1,17 +1,20 @@
 import { sequelize } from '../database';
 import { DataTypes, ModelDefined, Optional } from 'sequelize';
-import { PlayerModel } from './player';
 
 interface Team {
   id: string;
   name: string;
   players: string[];
-  captain: string; 
 }
 
 type TeamCreationAttributes = Optional<Team, 'id'>;
 
 const TeamModel: ModelDefined<Team, TeamCreationAttributes> = sequelize.define('teams', {
+  id: {
+    type: DataTypes.UUID,
+    primaryKey: true,
+    defaultValue: DataTypes.UUIDV4,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -19,14 +22,9 @@ const TeamModel: ModelDefined<Team, TeamCreationAttributes> = sequelize.define('
   players: {
     type: DataTypes.ARRAY(DataTypes.UUID),
     allowNull: false,
-  },
-  captain: {
-    type: DataTypes.UUID,
-    allowNull: false,
-  },
+  }
 });
 
-// Associations
-TeamModel.hasMany(PlayerModel, { foreignKey: 'teamId' });
+
 
 export { TeamModel };

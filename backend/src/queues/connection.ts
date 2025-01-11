@@ -1,7 +1,8 @@
 import client, { Channel, Connection } from 'amqplib';
-import { config } from 'src/config';
-import { winstonLogger } from 'src/shared/logger';
+
 import { Logger } from 'winston';
+import { config } from '../config';
+import { winstonLogger } from '../shared/logger';
 
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'authQueueConnection', 'debug');
 
