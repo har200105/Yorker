@@ -5,6 +5,9 @@ interface UserTeam {
   id: string;
   userId: string;
   matchId: string;
+  pointsObtained?: number;
+  leaderBoardRank?: number;
+  isScoredComputed?: boolean;
 }
 
 interface UserTeamPlayer {
@@ -13,6 +16,9 @@ interface UserTeamPlayer {
   playerId: string;
   isCaptain: boolean;
   isViceCaptain: boolean;
+  isPlayed?: boolean;
+  runs?: number;
+  wickets?: number;
   points: number;
 }
 
@@ -25,7 +31,7 @@ const UserTeamModel: ModelDefined<UserTeam, UserTeamCreationAttributes> = sequel
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+      defaultValue: DataTypes.UUIDV4, 
     },
     userId: {
       type: DataTypes.UUID,
@@ -35,6 +41,18 @@ const UserTeamModel: ModelDefined<UserTeam, UserTeamCreationAttributes> = sequel
       type: DataTypes.UUID,
       allowNull: false,
     },
+    pointsObtained:{
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    leaderBoardRank:{
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    isScoredComputed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    }
   }
 );
 
@@ -44,7 +62,7 @@ const UserTeamPlayerModel: ModelDefined<UserTeamPlayer, UserTeamPlayerCreationAt
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
-      defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+      defaultValue: DataTypes.UUIDV4, 
     },
     userTeamId: {
       type: DataTypes.UUID,
@@ -64,6 +82,20 @@ const UserTeamPlayerModel: ModelDefined<UserTeamPlayer, UserTeamPlayerCreationAt
       allowNull: false,
       defaultValue: false,
     },
+    runs:{
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
+    },
+    wickets: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0
+    },
+    isPlayed:{
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     points: {
       type: DataTypes.FLOAT,
       allowNull: false,
@@ -79,7 +111,5 @@ const UserTeamPlayerModel: ModelDefined<UserTeamPlayer, UserTeamPlayerCreationAt
     ],
   }
 );
-
-// Associations
 
 export { UserTeamModel, UserTeamPlayerModel };

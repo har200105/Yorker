@@ -16,6 +16,8 @@ export const createUserTeam = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    console.log("players ",players);
+
     if (!players || players.length !== 11) {
       res.status(400).json({ error: "11 players are required to create a team" });
       return;
@@ -52,7 +54,7 @@ export const createUserTeam = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-   
+
     if (!players.includes(captainId) || !players.includes(viceCaptainId)) {
       res.status(400).json({ error: "Captain and Vice-Captain must be part of the team" });
       return;
@@ -110,7 +112,7 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
       ],
     });
 
-    res.status(200).json({userTeams});
+    res.status(200).json({ userTeams });
   } catch (error) {
     console.error("Error fetching user teams:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams" });
@@ -129,15 +131,80 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
       },
       include: [
         {
-          model: UserTeamPlayerModel,
-          include: [PlayerModel],
+          model: MatchModel,
         },
-      ],
+        {
+          model: UserTeamPlayerModel,
+          as: 'user_team_players',
+          where: {
+            [Op.or]: [
+              { isCaptain: true },
+              { isViceCaptain: true }
+            ]
+          },
+          include: [
+            {
+              model: PlayerModel,
+              attributes: ['name', 'role', 'credits']
+            },
+          ],
+        }
+      ]
     });
 
-    res.status(200).json({userTeams});
+    const response = userTeams.map((userTeam: any) => {
+      let captain = null;
+      let viceCaptain = null;
+
+      userTeam.user_team_players.forEach((player: any) => {
+        if (player.isCaptain) {
+          captain = player.player;
+        }
+        if (player.isViceCaptain) {
+          viceCaptain = player.player;
+        }
+      });
+
+      const { user_team_players, ...userTeamWithoutPlayers } = userTeam.toJSON();
+
+
+      return {
+        userTeamWithoutPlayers,
+        captain,
+        viceCaptain,
+      };
+    });
+
+    res.status(200).json({ userTeams: response });
   } catch (error) {
     console.error("Error fetching user teams for the match:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams for the match" });
   }
 };
+
+
+export const getPlayersByTeamId = async (req: Request, res: Response): Promise<void> => {
+  const userTeam = await UserTeamModel.findOne({
+    where: {
+      id: req.params.id,
+    },
+    include: [
+      {
+        model: MatchModel
+      },
+      {
+        model: UserTeamPlayerModel,
+        as: 'user_team_players',
+        include: [
+          {
+            model: PlayerModel,
+            attributes: ['name', 'role', 'credits']
+          },
+        ],
+      }
+    ],
+  });
+
+  res.status(200).json(userTeam);
+
+}

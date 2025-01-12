@@ -5,6 +5,8 @@ interface Player {
   id: string;
   name: string;
   teamId: string;
+  credits: number;
+  photo?: string;
   role: 'batsman' | 'bowler' | 'allrounder' | 'wicketkeeper';
 }
 
@@ -14,7 +16,7 @@ const PlayerModel: ModelDefined<Player, PlayerCreationAttributes> = sequelize.de
   id: {
     type: DataTypes.UUID,
     primaryKey: true,
-    defaultValue: DataTypes.UUIDV4, // Automatically generate a UUID
+    defaultValue: DataTypes.UUIDV4,
   },
   name: {
     type: DataTypes.STRING,
@@ -27,9 +29,19 @@ const PlayerModel: ModelDefined<Player, PlayerCreationAttributes> = sequelize.de
   role: {
     type: DataTypes.ENUM('batsman', 'bowler', 'allrounder', 'wicketkeeper'),
     allowNull: false,
+  },
+  credits:{
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 7
+  },
+  photo:{
+    type: DataTypes.STRING,
+    allowNull: true
   }
+
 });
 
-// Associations
+
 
 export { PlayerModel };

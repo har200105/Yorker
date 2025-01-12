@@ -5,7 +5,7 @@ import { MatchModel } from './match';
 import { UserTeamModel, UserTeamPlayerModel } from './userTeam';
 import { UserModel } from './user';
 
-export const associate = async () => {
+export const associate = () => {
 
     TeamModel.hasMany(PlayerModel, { foreignKey: 'teamId', as: 'teamPlayers' });
     PlayerModel.belongsTo(TeamModel, { foreignKey: 'teamId' });

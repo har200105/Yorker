@@ -6,6 +6,13 @@ import { UserInstance, UserModel } from "../models/user";
 const ACCESS_TOKEN_SECRET_KEY = "your_access_token_secret";
 const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
 
+export const getUser = async(req: Request,res: Response): Promise<void> => {
+  if(req.currentUser.id){
+    res.status(200).json({currentUser: req.currentUser});
+  }
+  res.status(401).json({error: 'Invalid token'});
+}
+
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;

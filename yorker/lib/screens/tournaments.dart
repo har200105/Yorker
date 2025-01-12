@@ -1,32 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:yorker/models/tournament.dart';
+import 'package:yorker/providers/tournament.provider.dart';
+import 'package:yorker/screens/matches.dart';
 
-class TournamentScreen extends StatelessWidget {
-  final List<Tournament> tournaments = [
-    Tournament(
-      id: '1',
-      name: 'Champions Trophy',
-      startDate: DateTime(2025, 01, 01),
-      endDate: DateTime(2025, 01, 31),
-      tournamentLogo:
-          'https://upload.wikimedia.org/wikipedia/en/1/18/2025_IPL_logo.png?20241001000050',
-      status: 'upcoming',
-      isActive: true,
-    ),
-    Tournament(
-      id: '2',
-      name: 'IPL 2025',
-      startDate: DateTime(2024, 12, 01),
-      endDate: DateTime(2025, 02, 28),
-      tournamentLogo:
-          'https://upload.wikimedia.org/wikipedia/en/1/18/2025_IPL_logo.png?20241001000050',
-      status: 'ongoing',
-      isActive: true,
-    ),
-  ];
-
+class TournamentScreen extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tournamentsAsyncValue = ref.watch(tournamentsProvider);
+
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -37,12 +20,17 @@ class TournamentScreen extends StatelessWidget {
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: ListView.builder(
-            itemCount: tournaments.length,
-            itemBuilder: (context, index) {
-              final tournament = tournaments[index];
-              return TournamentCard(tournament: tournament);
-            },
+          child: tournamentsAsyncValue.when(
+            data: (tournaments) => ListView.builder(
+              itemCount: tournaments.length,
+              itemBuilder: (context, index) {
+                final tournament = tournaments[index];
+                return TournamentCard(tournament: tournament);
+              },
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) =>
+                Center(child: Text('Error: ${error.toString()}')),
           ),
         ),
       ),
@@ -84,18 +72,13 @@ class TournamentCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
-              'Status: ${tournament.status}',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Start Date: ${tournament.startDate.toLocal()}'.split(' ')[0],
+              'Start Date: ${DateFormat('MMM dd yyyy').format(DateTime.parse(tournament.startDate))}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             Text(
-              'End Date: ${tournament.endDate.toLocal()}'.split(' ')[0],
+              'End Date: ${DateFormat('MMM dd yyyy').format(DateTime.parse(tournament.endDate))}',
               style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 8),
@@ -104,7 +87,10 @@ class TournamentCard extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () {
-                    // Add action here
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) =>
+                          MatchListScreen(tournamentId: tournament.id),
+                    ));
                   },
                   child: const Text('View matches'),
                 ),

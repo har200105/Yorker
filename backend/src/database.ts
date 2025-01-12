@@ -21,6 +21,7 @@ export const sequelize = new Sequelize({
 export async function databaseConnection(): Promise<void> {
   try {
     await sequelize.authenticate();
+    await sequelize.sync({alter:true});
     log.info('Successfully connected to the PostgreSQL server.');
 
     const result = await sequelize.query(`SELECT 1 FROM pg_database WHERE datname = 'yorker';`);

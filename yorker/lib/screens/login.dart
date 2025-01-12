@@ -1,98 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yorker/providers/login.provider.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerWidget {
   static MaterialPageRoute route() => MaterialPageRoute(
         builder: (context) => const LoginPage(),
       );
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final loginState = ref.watch(loginProvider);
+    final userNameController = TextEditingController();
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
 
-class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final formKey = GlobalKey<FormState>();
+    void loginUser() {
+      if (formKey.currentState!.validate()) {
+        print(userNameController.text);
+        ref.read(loginProvider.notifier).login(
+              context,
+              userNameController.text,
+              passwordController.text,
+            );
+      }
+    }
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  void loginUser() {
-    if (formKey.currentState!.validate()) {}
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-        body: Padding(
-      padding: const EdgeInsets.all(15.0),
-      child: Form(
-        key: formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sports_cricket,
-              size: 100,
-              color: Colors.black,
-            ),
-            const Text(
-              "Welcome to Yorker :)",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      body: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.sports_cricket,
+                size: 100,
+                color: Colors.black,
               ),
-            ),
-            const SizedBox(height: 30),
-            TextFormField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                hintText: 'Email',
-              ),
-              validator: (value) {
-                if (value == null ||
-                    value.trim().isEmpty ||
-                    !value.trim().contains("@")) {
-                  return "Email field is invalid!";
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 15),
-            TextFormField(
-              controller: passwordController,
-              decoration: const InputDecoration(
-                hintText: 'Password',
-              ),
-              validator: (value) {
-                if (value == null ||
-                    value.trim().isEmpty ||
-                    value.trim().length <= 6) {
-                  return "Password field is invalid!";
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: loginUser,
-              child: const Text(
-                'LOGIN',
+              const Text(
+                "Welcome to Yorker :)",
                 style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 30),
+              TextFormField(
+                controller: userNameController,
+                decoration: const InputDecoration(
+                  hintText: 'akipiD',
+                ),
+                validator: (value) {
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              TextFormField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  hintText: 'Password',
+                ),
+                validator: (value) {
+                  if (value == null ||
+                      value.trim().isEmpty ||
+                      value.trim().length <= 5) {
+                    return "Password field is invalid!";
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: loginUser,
+                child: const Text(
+                  'LOGIN',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (loginState.error != null)
+                Text(
+                  loginState.error!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              if (loginState.token != null)
+                Text(
+                  'Login successful!',
+                  style: const TextStyle(color: Colors.green),
+                ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }

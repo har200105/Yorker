@@ -5,6 +5,7 @@ interface Team {
   id: string;
   name: string;
   players: string[];
+  logo?: string;
 }
 
 type TeamCreationAttributes = Optional<Team, 'id'>;
@@ -22,6 +23,10 @@ const TeamModel: ModelDefined<Team, TeamCreationAttributes> = sequelize.define('
   players: {
     type: DataTypes.ARRAY(DataTypes.UUID),
     allowNull: false,
+  },
+  logo:{
+    type: DataTypes.STRING,
+    allowNull: true
   }
 });
 
