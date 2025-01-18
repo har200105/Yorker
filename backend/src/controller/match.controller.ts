@@ -6,7 +6,7 @@ import { UserModel } from '../models/user';
 import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { TeamModel } from '../models/team';
 import { TournamentModel } from '../models/tournament';
-
+import { sequelize } from '../database';
 
 
 export const getMatchesByTournament = async (_req: Request, res: Response): Promise<void> => {
@@ -16,9 +16,9 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
         tournamentId: _req.params.tournamentId,
       },
       include: [
-        { model: TeamModel, as: 'teamA', attributes: ['id', 'name','logo'] },
-        { model: TeamModel, as: 'teamB', attributes: ['id', 'name','logo'] },
-        { model: TournamentModel, as: 'tournament', attributes: ['id', 'name','tournamentLogo'] },
+        { model: TeamModel, as: 'teamA', attributes: ['id', 'name', 'logo'] },
+        { model: TeamModel, as: 'teamB', attributes: ['id', 'name', 'logo'] },
+        { model: TournamentModel, as: 'tournament', attributes: ['id', 'name', 'tournamentLogo'] },
       ],
     });
 
@@ -35,11 +35,12 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
 
     const match = await MatchModel.findOne({
       where: { id: matchId }, include: [
-        { model: TeamModel, as: 'teamA', attributes: ['id', 'name','logo'] },
-        { model: TeamModel, as: 'teamB', attributes: ['id', 'name','logo'] },
+        { model: TeamModel, as: 'teamA', attributes: ['id', 'name', 'logo'] },
+        { model: TeamModel, as: 'teamB', attributes: ['id', 'name', 'logo'] },
         { model: TournamentModel, as: 'tournament', attributes: ['id', 'name'] },
       ],
     }) as any;
+
     if (!match) {
       res.status(404).json({ error: "Match with the given ID not found" });
       return;
@@ -55,7 +56,7 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
           [Op.or]: [teamAId, teamBId],
         },
       },
-      order:[['credits','DESC']],
+      order: [['credits', 'DESC']],
       include: [
         { model: TeamModel, as: 'team', attributes: ['id', 'name'] },
       ]
@@ -79,7 +80,7 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
 
 export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<void> => {
   try {
-    const matchId = req.params.id;
+    const matchId = req.params.matchId;
     const userId = req.currentUser.id;
 
     const match = await MatchModel.findByPk(matchId);
@@ -88,12 +89,17 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       return;
     }
 
+    if(!match.dataValues.matchWonById){
+      res.status(400).json({error: "Match is yet to be completed"});
+      return;
+    }
+
     const userTeams = await UserTeamModel.findAll({
       where: { matchId, userId },
       include: [
         {
           model: UserTeamPlayerModel,
-          as: 'userTeamPlayers',
+          as: 'user_team_players',
         },
         {
           model: UserModel,
@@ -104,7 +110,8 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 
 
     const leaderboard = userTeams.map((team) => {
-      const userTeamPlayers = team.get('userTeamPlayers') as any;
+      console.log(team);
+      const userTeamPlayers = team.get('user_team_players') as any;
       const user = team.get('user') as any;
       const totalPoints = userTeamPlayers.reduce((sum: any, player: any) => sum + player.points, 0);
 
@@ -124,3 +131,98 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
   }
 };
 
+
+
+export const submitMatchScores = async (req: Request, res: Response): Promise<void> => {
+
+  const matchId = req.params.matchId;
+  const { scoreBoard,matchWonBy,wonByEntity,wonByQuantity,isCalledOff,isTie,tossWonBy } = req.body; 
+
+  const match = await MatchModel.findByPk(matchId);
+
+  if(!match){
+    res.status(500).json({error: "Message not found"}); 
+    return;
+  }
+
+  await match.update({
+    scoreboard:scoreBoard,
+    matchWonById:matchWonBy,
+    wonByEntity,
+    wonByQuantity,
+    isCalledOff,
+    isTie,
+    tossWonById: tossWonBy
+  });
+
+  if (!scoreBoard || !Array.isArray(scoreBoard)) {
+    res.status(400).json({ error: "Invalid or missing scoreBoard data" });
+    return;
+  }
+
+  const transaction = await sequelize.transaction();
+  try {
+
+    for (const playerStats of scoreBoard) {
+      const { id: playerId, runs, wickets } = playerStats;
+
+      if (!playerId || runs === undefined || wickets === undefined) {
+        throw new Error(`Invalid data for player: ${JSON.stringify(playerStats)}`);
+      }
+
+      const userTeamPlayer: any = await UserTeamPlayerModel.findOne({
+        where: { playerId },
+        transaction,
+      });
+
+      if (!userTeamPlayer) {
+        throw new Error(`Player with ID ${playerId} not found`);
+      }
+
+      const userTeamId = userTeamPlayer.userTeamId;
+
+      const userTeam = await UserTeamModel.findOne({
+        where: { id: userTeamId, matchId },
+        transaction,
+      });
+
+      if (!userTeam) {
+        throw new Error(`Player with ID ${playerId} does not belong to match ID ${matchId}`);
+      }
+
+      const points = ((10 * wickets) + (1 * runs));
+
+      await UserTeamPlayerModel.update(
+        { runs, wickets, points },
+        { where: { id: userTeamPlayer.id }, transaction }
+      );
+
+      console.log(`Updated Player ID ${playerId} -> Runs: ${runs}, Wickets: ${wickets}, Points: ${points}`);
+    }
+
+    const userTeams: any = await UserTeamModel.findAll({ where: { matchId }, transaction });
+
+    for (const userTeam of userTeams) {
+      const userTeamId = userTeam.id;
+
+      const totalPoints = await UserTeamPlayerModel.sum('points', {
+        where: { userTeamId },
+        transaction,
+      });
+
+      await UserTeamModel.update(
+        { pointsObtained: totalPoints, isScoredComputed: true },
+        { where: { id: userTeamId }, transaction }
+      );
+
+      console.log(`Updated User Team ID ${userTeamId} -> Total Points: ${totalPoints}`);
+    }
+
+    await transaction.commit();
+    res.status(200).json({ message: "Scores and points calculated successfully" });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error calculating scores:", error);
+    res.status(500).json({ error: "An error occurred while calculating scores" });
+  }
+};

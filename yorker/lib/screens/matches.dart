@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:yorker/providers/match.provider.dart';
 import 'package:yorker/screens/create_team.dart';
+import 'package:yorker/screens/match_leader_board.dart';
 import 'package:yorker/screens/match_user_teams.dart';
 
 class MatchListScreen extends ConsumerWidget {
@@ -116,6 +117,24 @@ class MatchListScreen extends ConsumerWidget {
                               );
                             },
                             child: const Text('Create Team'),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.teal,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12, horizontal: 24),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => MatchLeaderBoard(
+                                          matchId: match.id,
+                                        )),
+                              );
+                            },
+                            child: const Text('View Leaderboard'),
                           ),
                           TextButton(
                             style: TextButton.styleFrom(

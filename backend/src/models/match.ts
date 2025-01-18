@@ -11,6 +11,14 @@ interface Match {
   status: 'scheduled' | 'live' | 'completed';
   venue: string;
   tournamentId: string;
+  matchWonById?: string;
+  tossWonById?: string;
+  isTie?: boolean;
+  isCalledOff?:boolean;
+  wonByEntity?: string;
+  wonByQuantity?: number;
+  scoreboard?:object;
+
 }
 
 type MatchCreationAttributes = Optional<Match, 'id'>;
@@ -45,10 +53,40 @@ const MatchModel: ModelDefined<Match, MatchCreationAttributes> = sequelize.defin
     type: DataTypes.STRING,
     allowNull: false,
   },
+  matchWonById:{
+    type: DataTypes.UUID,
+    allowNull: true,
+  },
+  tossWonById:{
+    type:DataTypes.UUID,
+    allowNull: true
+  },
+  isTie:{
+    type:DataTypes.BOOLEAN,
+    allowNull:false,
+    defaultValue: false
+  },
+  isCalledOff:{
+    type:DataTypes.BOOLEAN,
+    allowNull:false,
+    defaultValue: false
+  },
+  wonByEntity:{
+    type:DataTypes.ENUM('RUNS','WICKETS'),
+    allowNull: true
+  },
+  wonByQuantity:{
+    type:DataTypes.INTEGER,
+    allowNull: true
+  },
   tournamentId: {
     type: DataTypes.UUID,
     allowNull: false,
   },
+  scoreboard: {
+    type: DataTypes.JSONB, 
+    allowNull: true,  
+  }
 });
 
 

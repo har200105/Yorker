@@ -9,12 +9,14 @@ export const associate = () => {
 
     TeamModel.hasMany(PlayerModel, { foreignKey: 'teamId', as: 'teamPlayers' });
     PlayerModel.belongsTo(TeamModel, { foreignKey: 'teamId' });
-    
+
     TournamentModel.hasMany(MatchModel, { foreignKey: 'tournamentId' });
     MatchModel.belongsTo(TournamentModel, { foreignKey: 'tournamentId' });
-    
+
     MatchModel.belongsTo(TeamModel, { foreignKey: 'teamAId', as: 'teamA' });
     MatchModel.belongsTo(TeamModel, { foreignKey: 'teamBId', as: 'teamB' });
+    MatchModel.belongsTo(TeamModel, { foreignKey: 'matchWonById', as: 'matchWonBy' });
+    MatchModel.belongsTo(TeamModel, { foreignKey: 'tossWonById', as: 'tossWonBy' });
 
     UserTeamModel.belongsTo(UserModel, { foreignKey: 'userId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
     UserTeamModel.belongsTo(MatchModel, { foreignKey: 'matchId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
