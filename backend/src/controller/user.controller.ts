@@ -9,6 +9,7 @@ const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
 export const getUser = async(req: Request,res: Response): Promise<void> => {
   if(req.currentUser.id){
     res.status(200).json({currentUser: req.currentUser});
+    return;
   }
   res.status(401).json({error: 'Invalid token'});
 }

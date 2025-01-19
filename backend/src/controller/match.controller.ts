@@ -7,10 +7,23 @@ import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { TeamModel } from '../models/team';
 import { TournamentModel } from '../models/tournament';
 import { sequelize } from '../database';
+import { publishDirectMessage } from '../queues/publisher';
+import { serverChannel } from '../server';
+import { client } from '../redis/redis.connection';
 
 
 export const getMatchesByTournament = async (_req: Request, res: Response): Promise<void> => {
   try {
+    if (!client.isOpen) {
+      await client.connect();
+    }
+    const cacheKey = `matches:tournament:${_req.params.tournamentId}`;
+    const cachedMatches = await client.get(cacheKey);
+    if (cachedMatches) {
+      console.log('Returning cached matches');
+      res.status(200).json(JSON.parse(cachedMatches));
+      return;
+    }
     const matches = await MatchModel.findAll({
       where: {
         tournamentId: _req.params.tournamentId,
@@ -22,6 +35,8 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
       ],
     });
 
+    await client.setEx(cacheKey, 3600, JSON.stringify(matches));
+
     res.status(200).json(matches);
   } catch (error) {
     console.error('Error fetching matches:', error);
@@ -32,6 +47,16 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
 export const getPlayersByMatch = async (req: Request, res: Response): Promise<void> => {
   try {
     const { matchId } = req.params;
+    if (!client.isOpen) {
+      await client.connect();
+    }
+    const cacheKey = `matches:players:${matchId}`;
+    const cachedPayload = await client.get(cacheKey);
+    if (cachedPayload) {
+      console.log('Returning cached players');
+      res.status(200).json(JSON.parse(cachedPayload));
+      return;
+    }
 
     const match = await MatchModel.findOne({
       where: { id: matchId }, include: [
@@ -71,7 +96,9 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
       return acc;
     }, { [teamA.name]: [], [teamB.name]: [] } as { [key: string]: any[] });
 
-    res.status(200).json({ matchId: match.id, matchName: match.name, date: match.date, teamA: match.teamA, teamB: match.teamB, venue: match.venue, players: dataResponse });
+    const payload = { matchId: match.id, matchName: match.name, date: match.date, teamA: match.teamA, teamB: match.teamB, venue: match.venue, players: dataResponse };
+    client.setEx(cacheKey,3600,JSON.stringify(payload));
+    res.status(200).json(payload);
   } catch (error) {
     console.error('Error fetching players:', error);
     res.status(500).json({ error: "Internal server error" });
@@ -81,7 +108,9 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
 export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<void> => {
   try {
     const matchId = req.params.matchId;
+    console.log(req.currentUser);
     const userId = req.currentUser.id;
+    console.log(userId);
 
     const match = await MatchModel.findByPk(matchId);
     if (!match) {
@@ -89,10 +118,10 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       return;
     }
 
-    if(!match.dataValues.matchWonById){
-      res.status(400).json({error: "Match is yet to be completed"});
-      return;
-    }
+    // if(!match.dataValues.matchWonById){
+    //   res.status(400).json({error: "Match is yet to be completed"});
+    //   return;
+    // }
 
     const userTeams = await UserTeamModel.findAll({
       where: { matchId, userId },
@@ -124,6 +153,8 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 
     leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
 
+    console.log(leaderboard);
+
     res.status(200).json(leaderboard);
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
@@ -144,6 +175,12 @@ export const submitMatchScores = async (req: Request, res: Response): Promise<vo
     res.status(500).json({error: "Message not found"}); 
     return;
   }
+
+  publishDirectMessage(serverChannel, 
+    'yorker-app',
+    'process-match-scores',
+    JSON.stringify({ type: 'getSellers', 'count':1 }),
+    'Matches scores are published');
 
   await match.update({
     scoreboard:scoreBoard,

@@ -6,6 +6,7 @@ class Match {
   final DateTime date;
   final String status;
   final String venue;
+  final bool isCompleted;
   final String tournamentId;
   final Team teamA;
   final Team teamB;
@@ -17,6 +18,7 @@ class Match {
     required this.teamBId,
     required this.date,
     required this.status,
+    this.isCompleted = false,
     required this.venue,
     required this.tournamentId,
     required this.teamA,
@@ -32,6 +34,7 @@ class Match {
       date: DateTime.parse(json['date']),
       status: json['status'],
       venue: json['venue'],
+      isCompleted: json['isCompleted'] ?? false,
       tournamentId: json['tournamentId'],
       teamA: Team.fromJson(json['teamA']),
       teamB: Team.fromJson(json['teamB']),

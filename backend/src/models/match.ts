@@ -86,6 +86,11 @@ const MatchModel: ModelDefined<Match, MatchCreationAttributes> = sequelize.defin
   scoreboard: {
     type: DataTypes.JSONB, 
     allowNull: true,  
+  },
+  isCompleted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
   }
 });
 

@@ -34,6 +34,7 @@ class MatchListScreen extends ConsumerWidget {
             itemCount: matches.length,
             itemBuilder: (context, index) {
               final match = matches[index];
+              print(match.isCompleted);
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -100,62 +101,70 @@ class MatchListScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.teal,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 24),
+                          if (match.isCompleted == true)
+                            Expanded(
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: Colors.teal,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 24),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => CreateTeam(
+                                              matchId: match.id,
+                                            )),
+                                  );
+                                },
+                                child: const Text('Create Team'),
+                              ),
                             ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CreateTeam(
-                                          matchId: match.id,
-                                        )),
-                              );
-                            },
-                            child: const Text('Create Team'),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.teal,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 24),
+                          if (match.isCompleted == false)
+                            Expanded(
+                              child: TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: Colors.teal,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 24),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MatchLeaderBoard(
+                                              matchId: match.id,
+                                            )),
+                                  );
+                                },
+                                child: const Text('Leaderboard'),
+                              ),
                             ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => MatchLeaderBoard(
-                                          matchId: match.id,
-                                        )),
-                              );
-                            },
-                            child: const Text('View Leaderboard'),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: Colors.deepPurple,
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 24),
+                          Expanded(
+                            child: TextButton(
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.deepPurple,
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 24),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => UserTeamsListPage(
+                                            matchId: match.id,
+                                          )),
+                                );
+                              },
+                              child: const Text('View My Teams'),
                             ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => UserTeamsListPage(
-                                          matchId: match.id,
-                                        )),
-                              );
-                            },
-                            child: const Text('View My Teams'),
                           ),
                         ],
-                      ),
+                      )
                     ],
                   ),
                 ),

@@ -12,15 +12,16 @@ import compression from 'compression';
 import { appRoutes } from './routes';
 import { Channel } from 'amqplib';
 import { config } from './config';
-// import { createConnection } from './queues/connection';
 import { associate } from './models';
 import { UserModel } from './models/user';
+import { createConnection } from './queues/connection';
+import { subscribeMessages } from './queues/subscriber';
 
 
 const SERVER_PORT = 4002;
 const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'yorkerServer', 'debug');
 
-export let authChannel: Channel;
+export let serverChannel: Channel;
 
 declare global {
   namespace Express {
@@ -35,7 +36,7 @@ export function start(app: Application): void {
   securityMiddleware(app);
   standardMiddleware(app);
   routesMiddleware(app);
-  // startQueues();
+  startQueues();
   // startElasticSearch();
   errorHandler(app);
   startServer(app);
@@ -92,9 +93,10 @@ function routesMiddleware(app: Application): void {
   appRoutes(app);
 }
 
-// async function startQueues(): Promise<void> {
-//   authChannel = await createConnection() as Channel;
-// }
+async function startQueues(): Promise<void> {
+  serverChannel = await createConnection() as Channel;
+  await subscribeMessages(serverChannel);
+}
 
 // function startElasticSearch(): void {
 //   checkConnection();
