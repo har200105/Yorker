@@ -34,7 +34,6 @@ class MatchListScreen extends ConsumerWidget {
             itemCount: matches.length,
             itemBuilder: (context, index) {
               final match = matches[index];
-              print(match.isCompleted);
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -101,7 +100,7 @@ class MatchListScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (match.isCompleted == true)
+                          if (match.isCompleted == false)
                             Expanded(
                               child: TextButton(
                                 style: TextButton.styleFrom(
@@ -122,7 +121,7 @@ class MatchListScreen extends ConsumerWidget {
                                 child: const Text('Create Team'),
                               ),
                             ),
-                          if (match.isCompleted == false)
+                          if (match.isCompleted == true)
                             Expanded(
                               child: TextButton(
                                 style: TextButton.styleFrom(
