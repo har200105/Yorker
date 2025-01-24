@@ -1,9 +1,8 @@
 import { Logger } from 'winston';
 import { Sequelize } from 'sequelize';
-import { config } from './config';
 import { winstonLogger } from './shared/logger';
 
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'database', 'debug');
+const log: Logger = winstonLogger('database', 'debug');
 
 export const sequelize = new Sequelize({
   dialect: 'postgres',

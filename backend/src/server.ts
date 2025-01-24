@@ -8,10 +8,8 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { verify } from 'jsonwebtoken';
 import compression from 'compression';
-// import { checkConnection } from './shared/elasticsearch';
 import { appRoutes } from './routes';
 import { Channel } from 'amqplib';
-import { config } from './config';
 import { associate } from './models';
 import { UserModel } from './models/user';
 import { createConnection } from './queues/connection';
@@ -19,7 +17,7 @@ import { subscribeMessages } from './queues/subscriber';
 
 
 const SERVER_PORT = 4002;
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'yorkerServer', 'debug');
+const log: Logger = winstonLogger('yorkerServer', 'debug');
 
 export let serverChannel: Channel;
 
@@ -37,7 +35,6 @@ export function start(app: Application): void {
   standardMiddleware(app);
   routesMiddleware(app);
   startQueues();
-  // startElasticSearch();
   errorHandler(app);
   startServer(app);
   associate();
@@ -49,7 +46,7 @@ function securityMiddleware(app: Application): void {
   app.use(helmet());
   app.use(
     cors({
-      origin: config.API_GATEWAY_URL,
+      origin: ["*"],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
@@ -97,11 +94,6 @@ async function startQueues(): Promise<void> {
   serverChannel = await createConnection() as Channel;
   await subscribeMessages(serverChannel);
 }
-
-// function startElasticSearch(): void {
-//   checkConnection();
-// //   createIndex('matches');
-// }
 
 function errorHandler(app: Application): void {
   app.use((error: any, _req: Request, res: Response, next: NextFunction) => {

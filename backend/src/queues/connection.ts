@@ -4,7 +4,7 @@ import { Logger } from 'winston';
 import { config } from '../config';
 import { winstonLogger } from '../shared/logger';
 
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`,'queueConnection', 'debug');
+const log: Logger = winstonLogger('queueConnection', 'debug');
 
 async function createConnection(): Promise<Channel | undefined> {
   try {

@@ -18,8 +18,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data[
-          'accessToken']; // Assumes API returns token in the response body
+      return data['accessToken'];
     } else {
       throw Exception('Login failed');
     }

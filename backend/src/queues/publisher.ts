@@ -2,10 +2,9 @@
 import { Channel } from 'amqplib';
 import { Logger } from 'winston';
 import { winstonLogger } from '../shared/logger';
-import { config } from '../config';
 import { createConnection } from './connection';
 
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'gigServiceProducer', 'debug');
+const log: Logger = winstonLogger('queuePublisher', 'debug');
 
 const publishDirectMessage = async (
   channel: Channel,

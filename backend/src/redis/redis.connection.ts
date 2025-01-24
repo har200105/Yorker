@@ -4,7 +4,7 @@ import { winstonLogger } from '../shared/logger';
 import { Logger } from 'winston';
 
 type RedisClient = ReturnType<typeof createClient>;
-const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'redisConnection', 'debug');
+const log: Logger = winstonLogger('redisConnection', 'debug');
 const client: RedisClient = createClient({ url: `${config.REDIS_HOST}`});
 
 const redisConnect = async (): Promise<void> => {

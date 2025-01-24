@@ -2,11 +2,10 @@ import { Channel, ConsumeMessage } from "amqplib";
 import { createConnection } from "./connection";
 import { Logger } from "winston";
 import { winstonLogger } from "../shared/logger";
-import { config } from "../config";
 import { processTeamScores } from "../utils/processTeamScores";
 
 const subscribeMessages = async (channel: Channel): Promise<void> => {
-    const log: Logger = winstonLogger(`${config.ELASTIC_SEARCH_URL}`, 'subscriber', 'debug');
+    const log: Logger = winstonLogger('subscriber', 'debug');
 
     try {
       if (!channel) {
