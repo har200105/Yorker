@@ -78,7 +78,6 @@ class _MatchLeaderBoardState extends State<MatchLeaderBoard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Match Leaderboard'),
-        backgroundColor: Colors.blueAccent,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

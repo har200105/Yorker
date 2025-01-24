@@ -88,7 +88,7 @@ class MatchListScreen extends ConsumerWidget {
                         style: TextStyle(color: Colors.grey[700]),
                       ),
                       Text(
-                        'Status: ${match.status}',
+                        'Status: ${match.status.toUpperCase()}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: match.status == 'scheduled'
@@ -100,7 +100,7 @@ class MatchListScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          if (match.isCompleted == false)
+                          if (match.isCompleted == true)
                             Expanded(
                               child: TextButton(
                                 style: TextButton.styleFrom(
@@ -121,7 +121,7 @@ class MatchListScreen extends ConsumerWidget {
                                 child: const Text('Create Team'),
                               ),
                             ),
-                          if (match.isCompleted == true)
+                          if (match.isCompleted == false)
                             Expanded(
                               child: TextButton(
                                 style: TextButton.styleFrom(
@@ -183,9 +183,3 @@ class MatchListScreen extends ConsumerWidget {
     );
   }
 }
-
-
-  // Future<void> createTeam() async {
-  //   final response = await http.post(Uri.parse(
-  //       'http://10.106.150.152:4002/api/v1/user-team/create/${widget.matchId}'));
-  // }

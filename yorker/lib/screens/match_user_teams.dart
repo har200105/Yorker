@@ -98,7 +98,7 @@ class _UserTeamsListPageState extends State<UserTeamsListPage> {
                       );
                     },
                     title: Text(
-                      'Team #${team['userTeamWithoutPlayers']['id']}',
+                      'Team #${team['userTeamWithoutPlayers']['id'].split('-')[0]}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,

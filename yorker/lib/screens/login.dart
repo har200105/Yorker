@@ -14,10 +14,10 @@ class LoginPage extends ConsumerWidget {
     final userNameController = TextEditingController();
     final passwordController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    final obscurePassword = ValueNotifier<bool>(true);
 
     void loginUser() {
       if (formKey.currentState!.validate()) {
-        print(userNameController.text);
         ref.read(loginProvider.notifier).login(
               context,
               userNameController.text,
@@ -57,18 +57,32 @@ class LoginPage extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 15),
-              TextFormField(
-                controller: passwordController,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                ),
-                validator: (value) {
-                  if (value == null ||
-                      value.trim().isEmpty ||
-                      value.trim().length <= 5) {
-                    return "Password field is invalid!";
-                  }
-                  return null;
+              ValueListenableBuilder<bool>(
+                valueListenable: obscurePassword,
+                builder: (context, isObscured, _) {
+                  return TextFormField(
+                    controller: passwordController,
+                    obscureText: isObscured,
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isObscured ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          obscurePassword.value = !isObscured;
+                        },
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null ||
+                          value.trim().isEmpty ||
+                          value.trim().length <= 5) {
+                        return "Password field is invalid!";
+                      }
+                      return null;
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 20),
@@ -82,7 +96,7 @@ class LoginPage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               if (loginState.error != null)
                 Text(
                   loginState.error!,

@@ -5,6 +5,8 @@ import 'package:yorker/screens/login.dart';
 import 'package:yorker/screens/tournaments.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
+  const SplashScreen({super.key});
+
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }

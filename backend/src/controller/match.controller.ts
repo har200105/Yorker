@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import { MatchModel } from "../models/match"
 import { PlayerModel } from '../models/player';
 import { UserModel } from '../models/user';
 import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { TeamModel } from '../models/team';
 import { TournamentModel } from '../models/tournament';
-import { sequelize } from '../database';
 import { publishDirectMessage } from '../queues/publisher';
 import { serverChannel } from '../server';
 import { client } from '../redis/redis.connection';
@@ -20,7 +19,6 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
     const cacheKey = `matches:tournament:${_req.params.tournamentId}`;
     const cachedMatches = await client.get(cacheKey);
     if (cachedMatches) {
-      console.log('Returning cached matches');
       res.status(200).json(JSON.parse(cachedMatches));
       return;
     }
@@ -33,6 +31,9 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
         { model: TeamModel, as: 'teamB', attributes: ['id', 'name', 'logo'] },
         { model: TournamentModel, as: 'tournament', attributes: ['id', 'name', 'tournamentLogo'] },
       ],
+      order: [
+        [Sequelize.literal(`CASE WHEN status = 'scheduled' THEN 1 ELSE 2 END`), 'ASC'],
+      ],
     });
 
     await client.setEx(cacheKey, 3600, JSON.stringify(matches));
@@ -43,6 +44,7 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
     res.status(500).json({ error: 'An error occurred while fetching matches' });
   }
 };
+
 
 export const getPlayersByMatch = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -97,7 +99,7 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
     }, { [teamA.name]: [], [teamB.name]: [] } as { [key: string]: any[] });
 
     const payload = { matchId: match.id, matchName: match.name, date: match.date, teamA: match.teamA, teamB: match.teamB, venue: match.venue, players: dataResponse };
-    client.setEx(cacheKey,3600,JSON.stringify(payload));
+    client.setEx(cacheKey, 3600, JSON.stringify(payload));
     res.status(200).json(payload);
   } catch (error) {
     console.error('Error fetching players:', error);
@@ -118,10 +120,10 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // if(!match.dataValues.matchWonById){
-    //   res.status(400).json({error: "Match is yet to be completed"});
-    //   return;
-    // }
+    if(!match.dataValues.matchWonById){
+      res.status(400).json({error: "Match is yet to be completed"});
+      return;
+    }
 
     const userTeams = await UserTeamModel.findAll({
       where: { matchId, userId },
@@ -167,24 +169,18 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 export const submitMatchScores = async (req: Request, res: Response): Promise<void> => {
 
   const matchId = req.params.matchId;
-  const { scoreBoard,matchWonBy,wonByEntity,wonByQuantity,isCalledOff,isTie,tossWonBy } = req.body; 
+  const { scoreBoard, matchWonBy, wonByEntity, wonByQuantity, isCalledOff, isTie, tossWonBy } = req.body;
 
   const match = await MatchModel.findByPk(matchId);
 
-  if(!match){
-    res.status(500).json({error: "Message not found"}); 
+  if (!match) {
+    res.status(500).json({ error: "Message not found" });
     return;
   }
 
-  publishDirectMessage(serverChannel, 
-    'yorker-app',
-    'process-match-scores',
-    JSON.stringify({ type: 'getSellers', 'count':1 }),
-    'Matches scores are published');
-
   await match.update({
-    scoreboard:scoreBoard,
-    matchWonById:matchWonBy,
+    scoreboard: scoreBoard,
+    matchWonById: matchWonBy,
     wonByEntity,
     wonByQuantity,
     isCalledOff,
@@ -197,69 +193,13 @@ export const submitMatchScores = async (req: Request, res: Response): Promise<vo
     return;
   }
 
-  const transaction = await sequelize.transaction();
-  try {
+  publishDirectMessage(serverChannel,
+    'yorker-app',
+    'process-match-scores',
+    JSON.stringify({ 'matchId': matchId }),
+    'Matches scores are published');
 
-    for (const playerStats of scoreBoard) {
-      const { id: playerId, runs, wickets } = playerStats;
+  res.status(200).json({message:"Scoreboard successfully submitted"});
 
-      if (!playerId || runs === undefined || wickets === undefined) {
-        throw new Error(`Invalid data for player: ${JSON.stringify(playerStats)}`);
-      }
 
-      const userTeamPlayer: any = await UserTeamPlayerModel.findOne({
-        where: { playerId },
-        transaction,
-      });
-
-      if (!userTeamPlayer) {
-        throw new Error(`Player with ID ${playerId} not found`);
-      }
-
-      const userTeamId = userTeamPlayer.userTeamId;
-
-      const userTeam = await UserTeamModel.findOne({
-        where: { id: userTeamId, matchId },
-        transaction,
-      });
-
-      if (!userTeam) {
-        throw new Error(`Player with ID ${playerId} does not belong to match ID ${matchId}`);
-      }
-
-      const points = ((10 * wickets) + (1 * runs));
-
-      await UserTeamPlayerModel.update(
-        { runs, wickets, points },
-        { where: { id: userTeamPlayer.id }, transaction }
-      );
-
-      console.log(`Updated Player ID ${playerId} -> Runs: ${runs}, Wickets: ${wickets}, Points: ${points}`);
-    }
-
-    const userTeams: any = await UserTeamModel.findAll({ where: { matchId }, transaction });
-
-    for (const userTeam of userTeams) {
-      const userTeamId = userTeam.id;
-
-      const totalPoints = await UserTeamPlayerModel.sum('points', {
-        where: { userTeamId },
-        transaction,
-      });
-
-      await UserTeamModel.update(
-        { pointsObtained: totalPoints, isScoredComputed: true },
-        { where: { id: userTeamId }, transaction }
-      );
-
-      console.log(`Updated User Team ID ${userTeamId} -> Total Points: ${totalPoints}`);
-    }
-
-    await transaction.commit();
-    res.status(200).json({ message: "Scores and points calculated successfully" });
-  } catch (error) {
-    await transaction.rollback();
-    console.error("Error calculating scores:", error);
-    res.status(500).json({ error: "An error occurred while calculating scores" });
-  }
 };

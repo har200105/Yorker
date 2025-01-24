@@ -17,7 +17,7 @@ interface Match {
   isCalledOff?:boolean;
   wonByEntity?: string;
   wonByQuantity?: number;
-  scoreboard?:object;
+  scoreboard?: Array<any>;
 
 }
 
