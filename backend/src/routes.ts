@@ -7,7 +7,7 @@ import userTeamRouter from './routes/user.team.router';
 
 
 export const appRoutes = (app: Application): void => {
-    app.use('/api/v1/user', userRouter);
+    app.use('/api/v1/user', userRouter); 
     app.use('/api/v1/tournament', tournamentRouter);
     app.use('/api/v1/match', matchRouter);
     app.use('/api/v1/user-team',userTeamRouter);

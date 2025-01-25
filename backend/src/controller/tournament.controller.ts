@@ -10,8 +10,6 @@ export const getAllTournaments = async (_req: Request, res: Response): Promise<v
       const cacheKey = `tournaments:all`;
       const cachedTournaments = await client.get(cacheKey);
       if (cachedTournaments) {
-        console.log(cachedTournaments);
-        console.log('Returning cached tournments');
         res.status(200).json(JSON.parse(cachedTournaments));
         return;
       }

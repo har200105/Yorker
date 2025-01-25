@@ -40,6 +40,9 @@ class _MatchLeaderBoardState extends State<MatchLeaderBoard> {
         headers: {"Authorization": "Bearer $token"},
       );
 
+      print(response);
+      print(response.body);
+
       if (response.statusCode == 200) {
         setState(() {
           leaderboard = json.decode(response.body);

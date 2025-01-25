@@ -16,7 +16,6 @@ const populateDummyData = async () => {
     // Sync the models with the database
     await sequelize.sync({ force: true }); // WARNING: This will drop all tables and recreate them
 
-    console.log('Database synced successfully.');
 
     // Create a tournament
     const tournament = await TournamentModel.create({
@@ -27,8 +26,6 @@ const populateDummyData = async () => {
       tournamentLogo: 'https://upload.wikimedia.org/wikipedia/en/1/18/2025_IPL_logo.png?20241001000050',
       isActive: true
     });
-
-    console.log('Tournament created:', tournament.dataValues.id);
 
     // Create teams
     const teamA = await TeamModel.create({

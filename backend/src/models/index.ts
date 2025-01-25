@@ -25,6 +25,4 @@ export const associate = () => {
     UserTeamPlayerModel.belongsTo(UserTeamModel, { foreignKey: 'userTeamId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
     UserTeamPlayerModel.belongsTo(PlayerModel, { foreignKey: 'playerId', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
 
-
-    console.log("Done ");
 };

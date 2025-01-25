@@ -2,6 +2,11 @@ import { Transaction } from 'sequelize';
 import { sequelize } from '../database';
 import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { MatchModel } from '../models/match';
+import { winstonLogger } from '../shared/logger';
+import { Logger } from 'winston';
+
+const log: Logger = winstonLogger('database', 'debug');
+
 
 const processTeamScores = async (matchId: string): Promise<void> => {
 
@@ -51,7 +56,7 @@ const processTeamScores = async (matchId: string): Promise<void> => {
                 { where: { id: userTeamPlayer.id }, transaction }
             );
 
-            console.log(`Updated Player ID ${playerId} -> Runs: ${runs}, Wickets: ${wickets}, Points: ${points}`);
+            log.info(`Updated Player ID ${playerId} -> Runs: ${runs}, Wickets: ${wickets}, Points: ${points}`);
         }
 
         const userTeams: any = await UserTeamModel.findAll({ where: { matchId }, transaction });
@@ -69,7 +74,7 @@ const processTeamScores = async (matchId: string): Promise<void> => {
                 { where: { id: userTeamId }, transaction }
             );
 
-            console.log(`Updated User Team ID ${userTeamId} -> Total Points: ${totalPoints}`);
+            log.info(`Updated User Team ID ${userTeamId} -> Total Points: ${totalPoints}`);
         }
 
         await transaction.commit();

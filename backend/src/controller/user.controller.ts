@@ -7,7 +7,7 @@ const ACCESS_TOKEN_SECRET_KEY = "your_access_token_secret";
 const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
 
 export const getUser = async(req: Request,res: Response): Promise<void> => {
-  if(req.currentUser.id){
+  if(req?.currentUser?.id){
     res.status(200).json({currentUser: req.currentUser});
     return;
   }
@@ -27,7 +27,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     if (!user) {
       const hashedPassword = await hash(password, 10);
-      console.log(hashedPassword);
       const newUser = await UserModel.create({
         username,
         password: hashedPassword
@@ -39,7 +38,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     const isPasswordValid = await compare(password,user.dataValues.password);
-    console.log(isPasswordValid);
 
     if (!isPasswordValid) {
       res.status(401).json({ error: "Invalid username or password" });

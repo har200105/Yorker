@@ -46,14 +46,13 @@ function securityMiddleware(app: Application): void {
   app.use(helmet());
   app.use(
     cors({
-      origin: ["*"],
+      origin: "*",
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
     })
   );
   app.use(async (req: Request, _res: Response, next: NextFunction) => {
-    if (req.headers.authorization) {
-      console.log("here")
+    if (req?.headers?.authorization) {
       const token = req.headers.authorization.split(' ')[1];
       const payload = verify(token, "your_access_token_secret") as any;
       const user = await UserModel.findByPk(payload.id, {
@@ -61,7 +60,6 @@ function securityMiddleware(app: Application): void {
         raw: true
       });
       req.currentUser = user;
-      console.log(user);
     }
     next();
   });
@@ -98,7 +96,7 @@ async function startQueues(): Promise<void> {
 function errorHandler(app: Application): void {
   app.use((error: any, _req: Request, res: Response, next: NextFunction) => {
     log.log('error', `${error.comingFrom}:`, error);
-    res.status(error.statusCode).json(error.serializeErrors());
+    res.status(error.statusCode).json(error);
     next();
   });
 }

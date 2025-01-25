@@ -32,7 +32,8 @@ export const getMatchesByTournament = async (_req: Request, res: Response): Prom
         { model: TournamentModel, as: 'tournament', attributes: ['id', 'name', 'tournamentLogo'] },
       ],
       order: [
-        [Sequelize.literal(`CASE WHEN status = 'scheduled' THEN 1 ELSE 2 END`), 'ASC'],
+        [Sequelize.literal(`CASE WHEN "matches"."status" = 'scheduled' THEN 1 ELSE 2 END`), 'ASC'],
+
       ],
     });
 
@@ -55,7 +56,6 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
     const cacheKey = `matches:players:${matchId}`;
     const cachedPayload = await client.get(cacheKey);
     if (cachedPayload) {
-      console.log('Returning cached players');
       res.status(200).json(JSON.parse(cachedPayload));
       return;
     }
@@ -110,9 +110,7 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
 export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<void> => {
   try {
     const matchId = req.params.matchId;
-    console.log(req.currentUser);
     const userId = req.currentUser.id;
-    console.log(userId);
 
     const match = await MatchModel.findByPk(matchId);
     if (!match) {
@@ -120,10 +118,10 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       return;
     }
 
-    if(!match.dataValues.matchWonById){
-      res.status(400).json({error: "Match is yet to be completed"});
-      return;
-    }
+    // if(!match.dataValues.matchWonById){
+    //   res.status(400).json({error: "Match is yet to be completed"});
+    //   return;
+    // }
 
     const userTeams = await UserTeamModel.findAll({
       where: { matchId, userId },
@@ -141,10 +139,9 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 
 
     const leaderboard = userTeams.map((team) => {
-      console.log(team);
-      const userTeamPlayers = team.get('user_team_players') as any;
+      // const userTeamPlayers = team.get('user_team_players') as any;
       const user = team.get('user') as any;
-      const totalPoints = userTeamPlayers.reduce((sum: any, player: any) => sum + player.points, 0);
+      const totalPoints = team.dataValues.pointsObtained ?? 0;
 
       return {
         teamId: team.dataValues.id,
@@ -154,8 +151,6 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
     });
 
     leaderboard.sort((a, b) => b.totalPoints - a.totalPoints);
-
-    console.log(leaderboard);
 
     res.status(200).json(leaderboard);
   } catch (error) {

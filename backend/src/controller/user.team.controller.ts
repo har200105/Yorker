@@ -16,8 +16,6 @@ export const createUserTeam = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    console.log("players ",players);
-
     if (!players || players.length !== 11) {
       res.status(400).json({ error: "11 players are required to create a team" });
       return;
@@ -89,7 +87,6 @@ export const createUserTeam = async (req: Request, res: Response): Promise<void>
 };
 
 export const getUserTeams = async (req: Request, res: Response): Promise<void> => {
-  console.log("called");
   try {
     const userTeams = await UserTeamModel.findAll({
       where: {
@@ -121,7 +118,6 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
 
 export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log("calledhh");
     const matchId = req.params.matchId;
 
     const userTeams = await UserTeamModel.findAll({
@@ -151,6 +147,7 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         }
       ]
     });
+    const matchDetails = await MatchModel.findByPk(matchId,{raw:true});
 
     const response = userTeams.map((userTeam: any) => {
       let captain = null;
@@ -175,7 +172,8 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
       };
     });
 
-    res.status(200).json({ userTeams: response });
+
+    res.status(200).json({ userTeams: response, match:matchDetails });
   } catch (error) {
     console.error("Error fetching user teams for the match:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams for the match" });

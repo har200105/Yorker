@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:yorker/repository/auth.local.repository.dart';
+import 'package:yorker/screens/match_user_teams.dart';
 
 extension StringCapExtension on String {
   String capitalizeFirstLetter() {
@@ -17,7 +18,7 @@ extension StringCapExtension on String {
 class CreateTeam extends StatefulWidget {
   final String matchId;
 
-  CreateTeam({required this.matchId});
+  const CreateTeam({super.key, required this.matchId});
 
   @override
   _CreateTeamState createState() => _CreateTeamState();
@@ -98,7 +99,8 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context); // Navigate back or show success screen
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (context) => UserTeamsListPage(matchId: widget.matchId)));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -425,6 +427,17 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                                   .remove(player['id']);
                                               userCredits +=
                                                   player['credits'] as int;
+                                              if (viceCaptainId ==
+                                                  player['id']) {
+                                                setState(() {
+                                                  viceCaptainId = null;
+                                                });
+                                              }
+                                              if (captainId == player['id']) {
+                                                setState(() {
+                                                  captainId = null;
+                                                });
+                                              }
                                             } else if (canAddPlayer(
                                                 player['id'],
                                                 player['credits'])) {

@@ -15,6 +15,7 @@ class UserTeamsListPage extends StatefulWidget {
 
 class _UserTeamsListPageState extends State<UserTeamsListPage> {
   late Future<List<Map<String, dynamic>>> _userTeams;
+  String matchName = "";
 
   Future<List<Map<String, dynamic>>> _fetchUserTeams() async {
     final String? token = await LocalStorage.getToken();
@@ -25,7 +26,11 @@ class _UserTeamsListPageState extends State<UserTeamsListPage> {
         headers: {'Authorization': 'Bearer $token'});
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+      print(response.body);
       final List<dynamic> data = json.decode(response.body)['userTeams'];
+      setState(() {
+        matchName = jsonDecode(response.body)['match']['name'];
+      });
       print(data);
       return List<Map<String, dynamic>>.from(data);
     } else {
@@ -51,9 +56,6 @@ class _UserTeamsListPageState extends State<UserTeamsListPage> {
             } else if (snapshot.hasError) {
               return Text('Error');
             } else {
-              final matchName = snapshot.data?.first['userTeamWithoutPlayers']
-                      ['match']['name'] ??
-                  'No Match';
               return Text(matchName);
             }
           },

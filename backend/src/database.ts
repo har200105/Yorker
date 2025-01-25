@@ -4,17 +4,18 @@ import { winstonLogger } from './shared/logger';
 
 const log: Logger = winstonLogger('database', 'debug');
 
+
 export const sequelize = new Sequelize({
   dialect: 'postgres',
-  logging: true,
+  logging: false,
   dialectOptions: {
     multipleStatements: true,
   },
-  host: process.env.PG_HOST,
+  host: "localhost",
   port: parseInt(process.env.PG_PORT || '5432', 10),
-  username: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database:process.env.PG_DB,
+  username: "postgres",
+  password: '',
+  database:"yorker_2",
 });
 
 export async function databaseConnection(): Promise<void> {
@@ -23,22 +24,20 @@ export async function databaseConnection(): Promise<void> {
     await sequelize.sync({ alter:true });
     log.info('Successfully connected to the PostgreSQL server.');
 
-    const result = await sequelize.query(`SELECT 1 FROM pg_database WHERE datname = 'yorker';`);
+    const result = await sequelize.query(`SELECT 1 FROM pg_database WHERE datname = 'yorker_2';`);
 
     if (result[0].length === 0) {
-      await sequelize.query('CREATE DATABASE yorker;', { raw: true });
-      log.info('Database "yorker" created successfully.');
+      await sequelize.query('CREATE DATABASE yorker_2;', { raw: true });
+      log.info('Database "yorker_2" created successfully.');
     } else {
-      log.info('Database "yorker" already exists.');
+      log.info('Database "yorker_2" already exists.');
     }
 
     await sequelize.sync({});
 
 
-    log.info('PostgreSQL database "yorker" connection has been established successfully.');
+    log.info('PostgreSQL database "v" connection has been established successfully.');
 
-
-    console.log("changes");
 
   } catch (error) {
     log.error('Server Unable to connect to the database.');
