@@ -8,40 +8,43 @@ class UserTeam {
   final Player captain;
   final bool? isScoredComputed;
   final int? pointsObtained;
+  final int? leaderBoardRank;
   final List<Player> players;
 
-  const UserTeam({
-    required this.id,
-    required this.match,
-    required this.viceCaptain,
-    required this.captain,
-    this.isScoredComputed,
-    this.pointsObtained,
-    required this.players,
-  });
+  const UserTeam(
+      {required this.id,
+      required this.match,
+      required this.viceCaptain,
+      required this.captain,
+      this.isScoredComputed,
+      this.pointsObtained,
+      required this.players,
+      this.leaderBoardRank});
 
-  factory UserTeam.fromJSON(Map<String, dynamic> map) {
+  factory UserTeam.fromJson(Map<String, dynamic> map) {
     return UserTeam(
       id: map['id'] as String,
       match: Match.fromJson(map['match'] as Map<String, dynamic>),
       viceCaptain: Player.fromJson(map['viceCaptain'] as Map<String, dynamic>),
       captain: Player.fromJson(map['captain'] as Map<String, dynamic>),
       isScoredComputed: map['isScoredComputed'] as bool?,
-      pointsObtained: map['rank'] as int?,
+      leaderBoardRank: map['leaderBoardRank'] as int?,
+      pointsObtained: map['totalPoints'] as int?,
       players: (map['players'] as List<dynamic>)
           .map((player) => Player.fromJson(player as Map<String, dynamic>))
           .toList(),
     );
   }
 
-  Map<String, dynamic> toJSON() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'match': match.toJson(),
       'viceCaptain': viceCaptain.toJson(),
       'captain': captain.toJson(),
       'isScoredComputed': isScoredComputed,
-      'rank': pointsObtained,
+      'totalPoints': pointsObtained,
+      'leaderBoardRank': leaderBoardRank,
       'players': players.map((player) => player.toJson()).toList(),
     };
   }

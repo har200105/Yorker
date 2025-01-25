@@ -116,6 +116,14 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// final String id;
+//   final Match match;
+//   final Player viceCaptain;
+//   final Player captain;
+//   final bool? isScoredComputed;
+//   final int? pointsObtained;
+//   final int? leaderBoardRank;
+//   final List<Player> players;
 export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<void> => {
   try {
     const matchId = req.params.matchId;
@@ -125,6 +133,8 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         matchId,
         userId: req.currentUser.id,
       },
+      raw:true,
+      nest:true,
       include: [
         {
           model: MatchModel,
@@ -147,7 +157,8 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         }
       ]
     });
-    const matchDetails = await MatchModel.findByPk(matchId,{raw:true});
+    // const matchDetails = await MatchModel.findByPk(matchId,{raw:true});
+    console.log(userTeams);
 
     const response = userTeams.map((userTeam: any) => {
       let captain = null;
@@ -161,19 +172,22 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
           viceCaptain = player.player;
         }
       });
-
-      const { userTeamPlayers, ...userTeamWithoutPlayers } = userTeam.toJSON();
-
-
-      return {
-        userTeamWithoutPlayers,
-        captain,
-        viceCaptain,
-      };
+      console.log(viceCaptain);
+      console.log(captain);
     });
 
+    //   const { userTeamPlayers, ...userTeamWithoutPlayers } = userTeam.toJSON();
 
-    res.status(200).json({ userTeams: response, match:matchDetails });
+
+    //   return {
+    //     userTeamWithoutPlayers,
+    //     captain,
+    //     viceCaptain,
+    //   };
+    // });
+
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching user teams for the match:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams for the match" });
