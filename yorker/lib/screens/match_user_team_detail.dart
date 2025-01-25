@@ -53,7 +53,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
           }
 
           var team = snapshot.data!;
-          var players = team['user_team_players'] ?? [];
+          var players = team['userTeamPlayers'] ?? [];
           var isScoredComputed = team['isScoredComputed'];
 
           return Padding(

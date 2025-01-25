@@ -66,16 +66,18 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
         { model: TeamModel, as: 'teamB', attributes: ['id', 'name', 'logo'] },
         { model: TournamentModel, as: 'tournament', attributes: ['id', 'name'] },
       ],
+      raw: true,
+      nest:true
     }) as any;
+
+    console.log("match.teamA :",match.teamA);
 
     if (!match) {
       res.status(404).json({ error: "Match with the given ID not found" });
       return;
     }
 
-    const { teamAId, teamBId } = match.dataValues;
-    const teamA = match.dataValues.teamA;
-    const teamB = match.dataValues.teamB;
+    const { teamAId, teamBId } = match;
 
     const players = await PlayerModel.findAll({
       where: {
@@ -85,20 +87,12 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
       },
       order: [['credits', 'DESC']],
       include: [
-        { model: TeamModel, as: 'team', attributes: ['id', 'name'] },
+        { model: TeamModel, as: 'team', attributes: ['id', 'name','logo'] },
       ]
     }) as any;
 
-    const dataResponse = players.reduce((acc: any, player: any) => {
-      const teamKey = player.dataValues.team.name;
-      if (!acc[teamKey]) {
-        acc[teamKey] = [];
-      }
-      acc[teamKey].push(player);
-      return acc;
-    }, { [teamA.name]: [], [teamB.name]: [] } as { [key: string]: any[] });
 
-    const payload = { matchId: match.id, matchName: match.name, date: match.date, teamA: match.teamA, teamB: match.teamB, venue: match.venue, players: dataResponse };
+    const payload = { ...match, players: players };
     client.setEx(cacheKey, 3600, JSON.stringify(payload));
     res.status(200).json(payload);
   } catch (error) {
@@ -128,7 +122,7 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       include: [
         {
           model: UserTeamPlayerModel,
-          as: 'user_team_players',
+          as: 'userTeamPlayers',
         },
         {
           model: UserModel,
@@ -139,7 +133,7 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 
 
     const leaderboard = userTeams.map((team) => {
-      // const userTeamPlayers = team.get('user_team_players') as any;
+      // const userTeamPlayers = team.get('userTeamPlayers') as any;
       const user = team.get('user') as any;
       const totalPoints = team.dataValues.pointsObtained ?? 0;
 

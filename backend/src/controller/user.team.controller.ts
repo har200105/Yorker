@@ -95,7 +95,7 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
       include: [
         {
           model: UserTeamPlayerModel,
-          as: 'user_team_players',
+          as: 'userTeamPlayers',
           include: [
             {
               model: PlayerModel,
@@ -131,7 +131,7 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         },
         {
           model: UserTeamPlayerModel,
-          as: 'user_team_players',
+          as: 'userTeamPlayers',
           where: {
             [Op.or]: [
               { isCaptain: true },
@@ -153,7 +153,7 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
       let captain = null;
       let viceCaptain = null;
 
-      userTeam.user_team_players.forEach((player: any) => {
+      userTeam.userTeamPlayers.forEach((player: any) => {
         if (player.isCaptain) {
           captain = player.player;
         }
@@ -162,7 +162,7 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         }
       });
 
-      const { user_team_players, ...userTeamWithoutPlayers } = userTeam.toJSON();
+      const { userTeamPlayers, ...userTeamWithoutPlayers } = userTeam.toJSON();
 
 
       return {
@@ -192,7 +192,7 @@ export const getPlayersByTeamId = async (req: Request, res: Response): Promise<v
       },
       {
         model: UserTeamPlayerModel,
-        as: 'user_team_players',
+        as: 'userTeamPlayers',
         include: [
           {
             model: PlayerModel,

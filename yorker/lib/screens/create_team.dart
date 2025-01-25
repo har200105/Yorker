@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:yorker/providers/match.provider.dart';
 import 'package:yorker/repository/auth.local.repository.dart';
 import 'package:yorker/screens/match_user_teams.dart';
 
@@ -15,7 +17,7 @@ extension StringCapExtension on String {
   }
 }
 
-class CreateTeam extends StatefulWidget {
+class CreateTeam extends ConsumerStatefulWidget {
   final String matchId;
 
   const CreateTeam({super.key, required this.matchId});
@@ -24,7 +26,8 @@ class CreateTeam extends StatefulWidget {
   _CreateTeamState createState() => _CreateTeamState();
 }
 
-class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
+class _CreateTeamState extends ConsumerState<CreateTeam>
+    with TickerProviderStateMixin {
   late TabController _tabController;
 
   String matchName = "";
@@ -45,7 +48,10 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    fetchMatchDetails();
+    // fetchMatchDetails();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(matchNotifierProvider.notifier).fetchPlayers(widget.matchId);
+    });
   }
 
   @override
@@ -200,12 +206,25 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final matchState = ref.watch(matchNotifierProvider);
+    if (matchState.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Colors.tealAccent,
+        ),
+      );
+    }
+    final match =
+        ref.watch(matchNotifierProvider.notifier).getMatchById(widget.matchId);
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Your Fantasy Team'),
       ),
       body: teamPlayers.isEmpty
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+              color: Colors.amber,
+            ))
           : SingleChildScrollView(
               child: Column(
                 children: [

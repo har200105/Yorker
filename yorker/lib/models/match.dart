@@ -1,3 +1,6 @@
+import 'package:yorker/models/player.dart';
+import 'package:yorker/models/team.dart';
+
 class Match {
   final String id;
   final String name;
@@ -10,6 +13,7 @@ class Match {
   final String tournamentId;
   final Team teamA;
   final Team teamB;
+  final List<Player>? players;
 
   Match({
     required this.id,
@@ -23,6 +27,7 @@ class Match {
     required this.tournamentId,
     required this.teamA,
     required this.teamB,
+    this.players,
   });
 
   factory Match.fromJson(Map<String, dynamic> json) {
@@ -38,18 +43,28 @@ class Match {
       tournamentId: json['tournamentId'],
       teamA: Team.fromJson(json['teamA']),
       teamB: Team.fromJson(json['teamB']),
+      players: json['players'] != null
+          ? (json['players'] as List)
+              .map((playerJson) => Player.fromJson(playerJson))
+              .toList()
+          : null,
     );
   }
-}
 
-class Team {
-  final String id;
-  final String name;
-  final String? logo;
-
-  Team({required this.id, required this.name, this.logo});
-
-  factory Team.fromJson(Map<String, dynamic> json) {
-    return Team(id: json['id'], name: json['name'], logo: json['logo'] ?? '');
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'teamAId': teamAId,
+      'teamBId': teamBId,
+      'date': date.toIso8601String(),
+      'status': status,
+      'venue': venue,
+      'isCompleted': isCompleted,
+      'tournamentId': tournamentId,
+      'teamA': teamA.toJson(),
+      'teamB': teamB.toJson(),
+      'players': players?.map((player) => player.toJson()).toList(),
+    };
   }
 }
