@@ -9,7 +9,7 @@ class UserTeam {
   final bool? isScoredComputed;
   final int? pointsObtained;
   final int? leaderBoardRank;
-  final List<Player> players;
+  // final List<Player>? players;
 
   const UserTeam(
       {required this.id,
@@ -18,7 +18,7 @@ class UserTeam {
       required this.captain,
       this.isScoredComputed,
       this.pointsObtained,
-      required this.players,
+      // required this.players,
       this.leaderBoardRank});
 
   factory UserTeam.fromJson(Map<String, dynamic> map) {
@@ -30,9 +30,11 @@ class UserTeam {
       isScoredComputed: map['isScoredComputed'] as bool?,
       leaderBoardRank: map['leaderBoardRank'] as int?,
       pointsObtained: map['totalPoints'] as int?,
-      players: (map['players'] as List<dynamic>)
-          .map((player) => Player.fromJson(player as Map<String, dynamic>))
-          .toList(),
+      // players: map['players'] != null
+      //     ? (map['players'] as List)
+      //         .map((playerJson) => Player.fromJson(playerJson))
+      //         .toList()
+      // : null,
     );
   }
 
@@ -45,7 +47,7 @@ class UserTeam {
       'isScoredComputed': isScoredComputed,
       'totalPoints': pointsObtained,
       'leaderBoardRank': leaderBoardRank,
-      'players': players.map((player) => player.toJson()).toList(),
+      // 'players': players?.map((player) => player.toJson()).toList(),
     };
   }
 }

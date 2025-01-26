@@ -9,19 +9,24 @@ class UserTeamRepository {
 
   UserTeamRepository({required this.baseUrl});
 
-  Future<List<UserTeam>> fetchUserTeams(String matchId) async {
-    final String? token = await LocalStorage.getToken();
-    print('$baseUrl/api/v1/user-team/match/$matchId');
-    final response = await http.get(
-        Uri.parse('$baseUrl/api/v1/user-team/match/$matchId'),
-        headers: {"Authorization": "Bearer $token"});
-    print(response.body);
+  Future<List<UserTeam>?> fetchUserTeams(String matchId) async {
+    try {
+      final String? token = await LocalStorage.getToken();
+      print('$baseUrl/api/v1/user-team/match/$matchId');
+      final response = await http.get(
+          Uri.parse('$baseUrl/api/v1/user-team/match/$matchId'),
+          headers: {"Authorization": "Bearer $token"});
+      print(response.body);
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((matchJson) => UserTeam.fromJson(matchJson)).toList();
-    } else {
-      throw Exception('Failed to fetch matches');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((matchJson) => UserTeam.fromJson(matchJson)).toList();
+      } else {
+        print("errror");
+        throw Exception('Failed to fetch matches');
+      }
+    } catch (error) {
+      print("error : $error");
     }
   }
 
