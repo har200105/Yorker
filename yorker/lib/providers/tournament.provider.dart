@@ -3,7 +3,7 @@ import 'package:yorker/models/tournament.dart';
 import 'package:yorker/repository/tournament.repository.dart';
 
 final tournamentRepositoryProvider = Provider((ref) {
-  return TournamentRepository(baseUrl: 'http://10.106.150.152:4002');
+  return TournamentRepository(baseUrl: 'http://13.127.41.3');
 });
 
 final tournamentsProvider = FutureProvider<List<Tournament>>((ref) async {

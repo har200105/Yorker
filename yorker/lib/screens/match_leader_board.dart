@@ -35,7 +35,7 @@ class _MatchLeaderBoardState extends State<MatchLeaderBoard> {
 
       final response = await http.get(
         Uri.parse(
-          'http://10.106.150.152:4002/api/v1/match/leader-board/${widget.matchId}',
+          'http://13.127.41.3/api/v1/match/leader-board/${widget.matchId}',
         ),
         headers: {"Authorization": "Bearer $token"},
       );

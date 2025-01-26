@@ -19,7 +19,7 @@ class _TeamDetailsPageState extends State<TeamDetailsPage> {
 
   Future<Map<String, dynamic>> fetchTeamDetails(String teamId) async {
     final String? token = await LocalStorage.getToken();
-    final url = 'http://10.106.150.152:4002/api/v1/user-team/players/$teamId';
+    final url = 'http://13.127.41.3/api/v1/user-team/players/$teamId';
 
     final response = await http
         .get(Uri.parse(url), headers: {'Authorization': 'Bearer $token'});

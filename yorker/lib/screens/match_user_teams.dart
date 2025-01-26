@@ -21,7 +21,7 @@ class _UserTeamsListPageState extends State<UserTeamsListPage> {
     final String? token = await LocalStorage.getToken();
     final response = await http.get(
         Uri.parse(
-          'http://10.106.150.152:4002/api/v1/user-team/match/${widget.matchId}',
+          'http://13.127.41.3/api/v1/user-team/match/${widget.matchId}',
         ),
         headers: {'Authorization': 'Bearer $token'});
 
