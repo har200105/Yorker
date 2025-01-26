@@ -14,13 +14,11 @@ class UserTeamsListPage extends ConsumerStatefulWidget {
 }
 
 class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
-  late Future<List<Map<String, dynamic>>> _userTeams;
   String matchName = "";
 
   @override
   void initState() {
     super.initState();
-    // _userTeams = _fetchUserTeams();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(userTeamProvider.notifier).fetchUserTeams(widget.matchId);
     });
@@ -28,7 +26,9 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     final userTeamState = ref.watch(userTeamProvider);
+
     print("called");
     if (userTeamState.isLoading) {
       return const Center(
@@ -56,8 +56,7 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
-                    color: Colors
-                        .black, // Make sure the text color is set properly
+                    color: Colors.black,
                   ),
                 ),
                 SizedBox(height: 16),
@@ -159,7 +158,7 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                team.captain.name,
+                                team.captain!.player.name,
                                 style: TextStyle(
                                     fontSize: 14, fontWeight: FontWeight.w400),
                               ),
@@ -193,7 +192,7 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                               ),
                               SizedBox(width: 8),
                               Text(
-                                team.viceCaptain.name,
+                                team.viceCaptain!.player.name,
                                 style: TextStyle(
                                     fontSize: 14, fontWeight: FontWeight.w400),
                               ),

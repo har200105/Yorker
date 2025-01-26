@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:yorker/models/match.dart';
 import 'package:yorker/models/user_team.dart';
 import 'package:yorker/repository/auth.local.repository.dart';
 
@@ -9,40 +8,42 @@ class UserTeamRepository {
 
   UserTeamRepository({required this.baseUrl});
 
-  Future<List<UserTeam>?> fetchUserTeams(String matchId) async {
+  Future<List<UserTeam>> fetchUserTeams(String matchId) async {
     try {
       final String? token = await LocalStorage.getToken();
-      print('$baseUrl/api/v1/user-team/match/$matchId');
       final response = await http.get(
           Uri.parse('$baseUrl/api/v1/user-team/match/$matchId'),
           headers: {"Authorization": "Bearer $token"});
-      print(response.body);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((matchJson) => UserTeam.fromJson(matchJson)).toList();
       } else {
-        print("errror");
-        throw Exception('Failed to fetch matches');
+        throw Exception('Failed to fetch user teams');
       }
     } catch (error) {
       print("error : $error");
+      throw Exception('An unexpected error occurred');
     }
   }
 
-  Future<Match> fetchMatchById(String matchId) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/api/v1/match/all-players/$matchId'));
-    print(response.body);
+  Future<UserTeam> fetchPlayersByTeamId(String teamId) async {
+    try {
+      final String? token = await LocalStorage.getToken();
+      final response = await http.get(
+          Uri.parse('$baseUrl/api/v1/user-team/players/$teamId'),
+          headers: {"Authorization": "Bearer $token"});
 
-    if (response.statusCode == 200) {
-      print("response.body");
-      print(response.body);
-      print("----");
-      final Match match = Match.fromJson(jsonDecode(response.body));
-      return match;
-    } else {
-      throw Exception('Failed to fetch matches');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print(data);
+        return UserTeam.fromJson(data);
+      } else {
+        throw Exception('Failed to fetch user team players');
+      }
+    } catch (error) {
+      print("error in fetchPlayersByTeamId : $error");
+      throw Exception('An unexpected error occurred');
     }
   }
 }

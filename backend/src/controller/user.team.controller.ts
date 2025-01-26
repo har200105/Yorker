@@ -181,8 +181,8 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
       }) as any;
 
 
-      userTeam.captain = captain.player;
-      userTeam.viceCaptain = viceCaptain.player;
+      userTeam.captain = captain;
+      userTeam.viceCaptain = viceCaptain;
       return userTeam;
     }));
 
@@ -203,6 +203,10 @@ export const getPlayersByTeamId = async (req: Request, res: Response): Promise<v
     include: [
       {
         model: MatchModel,
+        include: [
+          { model: TeamModel, as: 'teamA'},
+          { model: TeamModel, as: 'teamB'},
+        ]
       },
       {
         model: UserTeamPlayerModel,
@@ -221,9 +225,51 @@ export const getPlayersByTeamId = async (req: Request, res: Response): Promise<v
     ],
   }) as any;
 
+    const captain = await UserTeamPlayerModel.findOne({
+      raw:true,
+      nest:true,
+      where:{
+        isCaptain: true,
+        userTeamId: userTeam.id
+      },
+      include:[
+        {
+          model: PlayerModel,
+          include:[
+            {
+              model:TeamModel
+            }
+          ]
+        }
+      ],
+      
+    }) as any;
+
+    const viceCaptain = await UserTeamPlayerModel.findOne({
+      raw:true,
+      nest:true,
+      where:{
+        isViceCaptain: true,
+        userTeamId: userTeam.id
+      },
+      include:[
+        {
+          model: PlayerModel,
+          include:[
+            {
+              model:TeamModel
+            }
+          ]
+        }
+      ],
+      
+    }) as any;
+
   // Rename 'userTeamPlayers' to 'players' in the response
   const response = {
     ...userTeam?.toJSON(),
+    captain,
+    viceCaptain,
     players: userTeam?.userTeamPlayers,  // Rename here
   };
 
