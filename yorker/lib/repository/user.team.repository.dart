@@ -30,6 +30,9 @@ class UserTeamRepository {
   Future<UserTeam> fetchPlayersByTeamId(String teamId) async {
     try {
       final String? token = await LocalStorage.getToken();
+      print("called");
+      print(token);
+      print(teamId);
       final response = await http.get(
           Uri.parse('$baseUrl/api/v1/user-team/players/$teamId'),
           headers: {"Authorization": "Bearer $token"});

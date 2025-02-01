@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yorker/providers/user.team.provider.dart';
 import 'package:yorker/screens/create_team.dart';
-import 'package:yorker/screens/match_user_team_detail.dart';
+import 'package:yorker/screens/public_user_team_detail.dart';
 
 class UserTeamsListPage extends ConsumerStatefulWidget {
   final String matchId;
@@ -26,7 +26,6 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     final userTeamState = ref.watch(userTeamProvider);
 
     print("called");
@@ -110,7 +109,7 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TeamDetailsPage(
+                        builder: (context) => PublicTeamDetailsPage(
                           teamId: team.id,
                         ),
                       ),
@@ -227,7 +226,7 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => TeamDetailsPage(
+                                  builder: (context) => PublicTeamDetailsPage(
                                         teamId: team.id,
                                       )),
                             );

@@ -128,7 +128,7 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    if (match.isCompleted)
+                                    if (!match.isCompleted)
                                       Expanded(
                                         child: TextButton(
                                           style: TextButton.styleFrom(
