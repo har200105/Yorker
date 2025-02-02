@@ -36,6 +36,7 @@ class TournamentScreen extends ConsumerWidget {
                       TextButton(
                         onPressed: () async {
                           await LocalStorage.clearToken();
+                          print("cleared called");
                           if (context.mounted) {
                             Navigator.of(context).pushReplacement(
                                 MaterialPageRoute(

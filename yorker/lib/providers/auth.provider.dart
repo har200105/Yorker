@@ -1,13 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yorker/constants.dart';
 
 import 'package:yorker/repository/auth.local.repository.dart';
 
 final authProvider = FutureProvider<bool>((ref) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('accessToken');
+  final String? token = await LocalStorage.getToken();
+  print("token : $token");
 
   if (token == null || token.isEmpty) {
     return false;
@@ -20,7 +19,12 @@ final authProvider = FutureProvider<bool>((ref) async {
     },
   );
 
+  print("eee");
+
+  print("response: ${response.body}");
+
   if (response.statusCode == 401 || response.statusCode >= 400) {
+    print("called /me api");
     await LocalStorage.clearToken();
     return false;
   }
