@@ -5,7 +5,7 @@ import { winstonLogger } from "../shared/logger";
 import { processTeamScores } from "../utils/processTeamScores";
 
 const subscribeMessages = async (channel: Channel): Promise<void> => {
-    const log: Logger = winstonLogger('subscriber', 'debug');
+    const log: Logger = winstonLogger('queueSubscriber', 'debug');
 
     try {
       if (!channel) {
@@ -19,9 +19,10 @@ const subscribeMessages = async (channel: Channel): Promise<void> => {
       const processScoresQueue = await channel.assertQueue(queueName, { durable: true, autoDelete: false });
       await channel.bindQueue(processScoresQueue.queue, exchangeName, routingKey);
       channel.consume(processScoresQueue.queue, async (msg: ConsumeMessage | null) => {
-        const { data } = JSON.parse(msg!.content.toString()) as { data: { matchId: string } };
-        log.info(`Payload received in ${queueName} : ${data}`);
-        processTeamScores(data.matchId);
+        console.log("msg :",JSON.parse(msg!.content.toString()));
+        const { matchId } = JSON.parse(msg!.content.toString());
+        log.info(`Payload received in ${queueName} : ${matchId}`);
+        processTeamScores(matchId);
 
         channel.ack(msg!);
       });

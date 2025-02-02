@@ -14,6 +14,7 @@ interface Match {
   matchWonById?: string;
   tossWonById?: string;
   isTie?: boolean;
+  isCompleted?: boolean;
   isCalledOff?:boolean;
   wonByEntity?: string;
   wonByQuantity?: number;

@@ -11,6 +11,7 @@ import { serverChannel } from '../server';
 import { client } from '../redis/redis.connection';
 
 
+
 export const getMatchesByTournament = async (_req: Request, res: Response): Promise<void> => {
   try {
     if (!client.isOpen) {
@@ -104,7 +105,6 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
 export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<void> => {
   try {
     const matchId = req.params.matchId;
-    const userId = req.currentUser.id;
 
     const match = await MatchModel.findByPk(matchId);
     if (!match) {
@@ -118,7 +118,7 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
     // }
 
     const userTeams = await UserTeamModel.findAll({
-      where: { matchId, userId },
+      where: { matchId },
       include: [
         {
           model: UserTeamPlayerModel,
@@ -157,15 +157,25 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
 
 export const submitMatchScores = async (req: Request, res: Response): Promise<void> => {
 
+ try{
   const matchId = req.params.matchId;
   const { scoreBoard, matchWonBy, wonByEntity, wonByQuantity, isCalledOff, isTie, tossWonBy } = req.body;
 
   const match = await MatchModel.findByPk(matchId);
 
+  console.log("matcjjjjjjjh :",match);
+
   if (!match) {
-    res.status(500).json({ error: "Message not found" });
+    res.status(500).json({ error: "Match not found" });
     return;
   }
+
+  // if(match.dataValues.status == "completed"){
+  //   res.status(413).json({error: "Match is already completed"});
+  //   return;
+  // }
+
+  console.log("not completed");
 
   await match.update({
     scoreboard: scoreBoard,
@@ -177,18 +187,25 @@ export const submitMatchScores = async (req: Request, res: Response): Promise<vo
     tossWonById: tossWonBy
   });
 
+  console.log("saved");
+
   if (!scoreBoard || !Array.isArray(scoreBoard)) {
     res.status(400).json({ error: "Invalid or missing scoreBoard data" });
     return;
   }
 
-  publishDirectMessage(serverChannel,
+  publishDirectMessage(
+    serverChannel,
     'yorker-app',
     'process-match-scores',
     JSON.stringify({ 'matchId': matchId }),
     'Matches scores are published');
 
   res.status(200).json({message:"Scoreboard successfully submitted"});
+ }
+ catch(error){
+  console.log("error :",error);
+ }
 
 
 };

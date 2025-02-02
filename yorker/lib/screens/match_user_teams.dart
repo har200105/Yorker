@@ -6,8 +6,9 @@ import 'package:yorker/screens/public_user_team_detail.dart';
 
 class UserTeamsListPage extends ConsumerStatefulWidget {
   final String matchId;
+  final bool isCompleted;
 
-  UserTeamsListPage({required this.matchId});
+  UserTeamsListPage({required this.matchId, this.isCompleted = false});
 
   @override
   _UserTeamsListPageState createState() => _UserTeamsListPageState();
@@ -59,25 +60,26 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 24),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreateTeam(
-                          matchId: widget.matchId,
+                if (!widget.isCompleted)
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 24),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateTeam(
+                            matchId: widget.matchId,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: const Text('Create Team'),
-                ),
+                      );
+                    },
+                    child: const Text('Create Team'),
+                  ),
               ],
             ),
           ),

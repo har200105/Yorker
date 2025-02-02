@@ -265,15 +265,13 @@ export const getPlayersByTeamId = async (req: Request, res: Response): Promise<v
       
     }) as any;
 
-  // Rename 'userTeamPlayers' to 'players' in the response
   const response = {
     ...userTeam?.toJSON(),
     captain,
     viceCaptain,
-    players: userTeam?.userTeamPlayers,  // Rename here
+    players: userTeam?.userTeamPlayers, 
   };
 
-  // Delete the old 'userTeamPlayers' field to avoid duplication
   delete response.userTeamPlayers;
 
   res.status(200).json(response);

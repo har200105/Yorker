@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:yorker/models/tournament.dart';
 import 'package:yorker/providers/tournament.provider.dart';
+import 'package:yorker/repository/auth.local.repository.dart';
+import 'package:yorker/screens/login.dart';
 import 'package:yorker/screens/matches.dart';
 
 class TournamentScreen extends ConsumerWidget {
@@ -17,6 +19,37 @@ class TournamentScreen extends ConsumerWidget {
           backgroundColor: Colors.tealAccent,
           elevation: 4,
           toolbarHeight: 56,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.black),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Are you sure you want to log out?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () async {
+                          await LocalStorage.clearToken();
+                          if (context.mounted) {
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) => LoginPage()));
+                          }
+                        },
+                        child: const Text('Logout'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),

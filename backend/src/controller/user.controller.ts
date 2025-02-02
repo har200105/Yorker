@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { compare, hash } from "bcryptjs";
-import { UserInstance, UserModel } from "../models/user";
+import { UserModel } from "../models/user";
 
 const ACCESS_TOKEN_SECRET_KEY = "your_access_token_secret";
 const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
@@ -18,26 +18,32 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
+    console.log(username,password);
+
     if (!username || !password) {
       res.status(400).json({ error: "Username and password are required" });
       return;
     }
 
-    const user = await UserModel.findOne({ where: { username } });
+    const user = await UserModel.findOne({ where: { username },raw: true });
 
     if (!user) {
       const hashedPassword = await hash(password, 10);
-      const newUser = await UserModel.create({
+      const newUserInstance = await UserModel.create({
         username,
         password: hashedPassword
       });
+      
+      const newUser = newUserInstance.get({ plain: true }); 
+      console.log("created new");
+      console.log(newUser);
 
       const tokens = generateTokens(newUser);
       res.status(201).json({ message: "User created", ...tokens });
       return;
     }
 
-    const isPasswordValid = await compare(password,user.dataValues.password);
+    const isPasswordValid = await compare(password,user.password);
 
     if (!isPasswordValid) {
       res.status(401).json({ error: "Invalid username or password" });
@@ -47,12 +53,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     const tokens = generateTokens(user);
     res.status(200).json({ message: "User logged in", ...tokens });
   } catch (error) {
-    console.error("Error during login:", error);
+    console.log("Error during login:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const generateTokens = (user: UserInstance) => {
+const generateTokens = (user: any) => {
   const accessToken = jwt.sign(
     { id: user.id, username: user.username },
     ACCESS_TOKEN_SECRET_KEY,

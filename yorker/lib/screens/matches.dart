@@ -186,8 +186,9 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                             MaterialPageRoute(
                                                 builder: (context) =>
                                                     UserTeamsListPage(
-                                                      matchId: match.id,
-                                                    )),
+                                                        matchId: match.id,
+                                                        isCompleted:
+                                                            match.isCompleted)),
                                           );
                                         },
                                         child: const Text('View My Teams'),

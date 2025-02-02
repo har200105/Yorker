@@ -56,7 +56,7 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
     super.dispose();
   }
 
-  Future<void> createTeam() async {
+  Future<void> createTeam(match) async {
     if (!isTeamComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -103,8 +103,7 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
         );
         Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (context) => UserTeamsListPage(
-                  matchId: widget.matchId,
-                )));
+                matchId: widget.matchId, isCompleted: match.isCompleted)));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -212,10 +211,12 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
         title: Text('Create Your Fantasy Team'),
       ),
       body: match.players!.isEmpty
-          ? Center(
-              child: CircularProgressIndicator(
-              color: Colors.amber,
-            ))
+          ? Scaffold(
+              body: Center(
+                  child: CircularProgressIndicator(
+                color: Colors.amber,
+              )),
+            )
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -473,7 +474,7 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
       floatingActionButton: FloatingActionButton(
         onPressed: isTeamComplete
             ? () async {
-                await createTeam();
+                await createTeam(match);
               }
             : () {
                 if (selectedPlayers.length != 11) {
