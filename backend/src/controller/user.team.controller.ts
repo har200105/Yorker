@@ -3,6 +3,7 @@ import { MatchModel } from '../models/match';
 import { PlayerModel } from '../models/player';
 import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { Op } from 'sequelize';
+import { TeamModel } from '../models/team';
 
 export const createUserTeam = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -95,7 +96,7 @@ export const getUserTeams = async (req: Request, res: Response): Promise<void> =
       include: [
         {
           model: UserTeamPlayerModel,
-          as: 'user_team_players',
+          as: 'userTeamPlayers',
           include: [
             {
               model: PlayerModel,
@@ -125,55 +126,68 @@ export const getUserTeamsByMatch = async (req: Request, res: Response): Promise<
         matchId,
         userId: req.currentUser.id,
       },
+      raw:true,
+      nest:true,
       include: [
         {
           model: MatchModel,
-        },
-        {
-          model: UserTeamPlayerModel,
-          as: 'user_team_players',
-          where: {
-            [Op.or]: [
-              { isCaptain: true },
-              { isViceCaptain: true }
-            ]
-          },
           include: [
-            {
-              model: PlayerModel,
-              attributes: ['name', 'role', 'credits']
-            },
-          ],
+            { model: TeamModel, as: 'teamA', attributes: ['id', 'name', 'logo'] },
+            { model: TeamModel, as: 'teamB', attributes: ['id', 'name', 'logo'] },
+          ]
         }
       ]
     });
-    const matchDetails = await MatchModel.findByPk(matchId,{raw:true});
 
-    const response = userTeams.map((userTeam: any) => {
-      let captain = null;
-      let viceCaptain = null;
+    const response = await Promise.all(userTeams.map(async(userTeam: any) =>{ 
+      const captain = await UserTeamPlayerModel.findOne({
+        raw:true,
+        nest:true,
+        where:{
+          isCaptain: true,
+          userTeamId: userTeam.id
+        },
+        include:[
+          {
+            model: PlayerModel,
+            include:[
+              {
+                model:TeamModel
+              }
+            ]
+          }
+        ],
+        
+      }) as any;
 
-      userTeam.user_team_players.forEach((player: any) => {
-        if (player.isCaptain) {
-          captain = player.player;
-        }
-        if (player.isViceCaptain) {
-          viceCaptain = player.player;
-        }
-      });
+      const viceCaptain = await UserTeamPlayerModel.findOne({
+        raw:true,
+        nest:true,
+        where:{
+          isViceCaptain: true,
+          userTeamId: userTeam.id
+        },
+        include:[
+          {
+            model: PlayerModel,
+            include:[
+              {
+                model:TeamModel
+              }
+            ]
+          }
+        ],
+        
+      }) as any;
 
-      const { user_team_players, ...userTeamWithoutPlayers } = userTeam.toJSON();
 
+      userTeam.captain = captain;
+      userTeam.viceCaptain = viceCaptain;
+      return userTeam;
+    }));
 
-      return {
-        userTeamWithoutPlayers,
-        captain,
-        viceCaptain,
-      };
-    });
-
-
-    res.status(200).json({ userTeams: response, match:matchDetails });
+    
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching user teams for the match:", error);
     res.status(500).json({ error: "An error occurred while fetching user teams for the match" });
@@ -188,21 +202,77 @@ export const getPlayersByTeamId = async (req: Request, res: Response): Promise<v
     },
     include: [
       {
-        model: MatchModel
+        model: MatchModel,
+        include: [
+          { model: TeamModel, as: 'teamA'},
+          { model: TeamModel, as: 'teamB'},
+        ]
       },
       {
         model: UserTeamPlayerModel,
-        as: 'user_team_players',
+        as: 'userTeamPlayers', 
         include: [
           {
             model: PlayerModel,
-            attributes: ['name', 'role', 'credits']
+            include:[
+              {
+                model:TeamModel
+              }
+            ]
           },
         ],
-      }
+      },
     ],
-  });
+  }) as any;
 
-  res.status(200).json(userTeam);
+    const captain = await UserTeamPlayerModel.findOne({
+      raw:true,
+      nest:true,
+      where:{
+        isCaptain: true,
+        userTeamId: userTeam.id
+      },
+      include:[
+        {
+          model: PlayerModel,
+          include:[
+            {
+              model:TeamModel
+            }
+          ]
+        }
+      ],
+      
+    }) as any;
 
-}
+    const viceCaptain = await UserTeamPlayerModel.findOne({
+      raw:true,
+      nest:true,
+      where:{
+        isViceCaptain: true,
+        userTeamId: userTeam.id
+      },
+      include:[
+        {
+          model: PlayerModel,
+          include:[
+            {
+              model:TeamModel
+            }
+          ]
+        }
+      ],
+      
+    }) as any;
+
+  const response = {
+    ...userTeam?.toJSON(),
+    captain,
+    viceCaptain,
+    players: userTeam?.userTeamPlayers, 
+  };
+
+  delete response.userTeamPlayers;
+
+  res.status(200).json(response);
+};

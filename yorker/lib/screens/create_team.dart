@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:yorker/models/player.dart';
+import 'package:yorker/providers/match.provider.dart';
 import 'package:yorker/repository/auth.local.repository.dart';
 import 'package:yorker/screens/match_user_teams.dart';
 
@@ -15,7 +18,7 @@ extension StringCapExtension on String {
   }
 }
 
-class CreateTeam extends StatefulWidget {
+class CreateTeam extends ConsumerStatefulWidget {
   final String matchId;
 
   const CreateTeam({super.key, required this.matchId});
@@ -24,28 +27,27 @@ class CreateTeam extends StatefulWidget {
   _CreateTeamState createState() => _CreateTeamState();
 }
 
-class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
+class _CreateTeamState extends ConsumerState<CreateTeam>
+    with TickerProviderStateMixin {
   late TabController _tabController;
-
-  String matchName = "";
-  String venue = "";
-  String date = "";
 
   int userCredits = 100;
   final int totalCredits = 100;
   int selectedPlayersCount = 0;
 
-  Map<String, List<Map<String, dynamic>>> teamPlayers = {};
+  Map<String, List<Player>> teamPlayers = {};
   Map<String, bool> selectedPlayers = {};
   String? captainId;
   String? viceCaptainId;
-  Map<String, dynamic>? teamA;
-  Map<String, dynamic>? teamB;
 
   @override
   void initState() {
     super.initState();
-    fetchMatchDetails();
+    // fetchMatchDetails();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(matchNotifierProvider.notifier).fetchPlayers(widget.matchId);
+    });
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -54,7 +56,7 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  Future<void> createTeam() async {
+  Future<void> createTeam(match) async {
     if (!isTeamComplete) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -100,7 +102,8 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
           ),
         );
         Navigator.of(context).pushReplacement(MaterialPageRoute(
-            builder: (context) => UserTeamsListPage(matchId: widget.matchId)));
+            builder: (context) => UserTeamsListPage(
+                matchId: widget.matchId, isCompleted: match.isCompleted)));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -119,34 +122,6 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> fetchMatchDetails() async {
-    final response = await http.get(Uri.parse(
-        'http://13.127.41.3/api/v1/match/all-players/${widget.matchId}'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        matchName = data['matchName'];
-        venue = data['venue'];
-        date = data['date'];
-        teamA = data['teamA'];
-        teamB = data['teamB'];
-
-        teamPlayers = {
-          data['teamA']['name']: List<Map<String, dynamic>>.from(
-              data['players'][data['teamA']['name']]),
-          data['teamB']['name']: List<Map<String, dynamic>>.from(
-              data['players'][data['teamB']['name']]),
-        };
-
-        _tabController =
-            TabController(length: teamPlayers.keys.length, vsync: this);
-      });
-    } else {
-      throw Exception('Failed to load match details');
-    }
-  }
-
   void showSnackbar(BuildContext context, String message) {
     final snackBar = SnackBar(
       content: Text(message),
@@ -162,12 +137,18 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
   }
 
   bool canAddPlayer(String playerId, int credits) {
-    List teamAPlayerIds =
-        teamPlayers[teamA!['name']]?.map((player) => player['id']).toList() ??
-            [];
-    List teamBPlayerIds =
-        teamPlayers[teamB!['name']]?.map((player) => player['id']).toList() ??
-            [];
+    final match =
+        ref.read(matchNotifierProvider.notifier).getMatchById(widget.matchId);
+
+    List<String> teamAPlayerIds = match.players!
+        .where((player) => player.teamId == match.teamAId)
+        .map((player) => player.id)
+        .toList();
+
+    List<String> teamBPlayerIds = match.players!
+        .where((player) => player.teamId == match.teamBId)
+        .map((player) => player.id)
+        .toList();
 
     bool isTeamAPlayer = teamAPlayerIds.contains(playerId);
     bool isTeamBPlayer = teamBPlayerIds.contains(playerId);
@@ -200,12 +181,42 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final matchState = ref.watch(matchNotifierProvider);
+    if (matchState.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Colors.tealAccent,
+        ),
+      );
+    }
+    final match =
+        ref.watch(matchNotifierProvider.notifier).getMatchById(widget.matchId);
+
+    final String teamAName = match.teamA.name;
+    final String teamBName = match.teamB.name;
+
+    teamPlayers = {
+      teamAName: match.players!
+          .where((player) => player.teamId == match.teamAId)
+          .toList(),
+      teamBName: match.players!
+          .where((player) => player.teamId == match.teamBId)
+          .toList()
+    };
+    print("teamPlayers ");
+    print(teamPlayers);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Your Fantasy Team'),
       ),
-      body: teamPlayers.isEmpty
-          ? Center(child: CircularProgressIndicator())
+      body: match.players!.isEmpty
+          ? Scaffold(
+              body: Center(
+                  child: CircularProgressIndicator(
+                color: Colors.amber,
+              )),
+            )
           : SingleChildScrollView(
               child: Column(
                 children: [
@@ -223,12 +234,12 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                             Row(
                               children: [
                                 Image.network(
-                                  teamA?['logo'] ?? '', // Display team A logo
-                                  height: 30, // Adjust size as needed
+                                  match.teamA.logo,
+                                  height: 30,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  "VS", // Between the two teams
+                                  "VS",
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -236,7 +247,7 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                 ),
                                 SizedBox(width: 8),
                                 Image.network(
-                                  teamB?['logo'] ?? '', // Display team B logo
+                                  match.teamB.logo, // Display team B logo
                                   height: 30, // Adjust size as needed
                                 ),
                               ],
@@ -247,7 +258,7 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                 Icon(Icons.location_on, size: 16),
                                 SizedBox(width: 4),
                                 Text(
-                                  "$venue | ${DateFormat('MMMM dd, yyyy').format(DateTime.parse(date))}",
+                                  "${match.venue} | ${DateFormat('MMMM dd, yyyy').format(match.date)}",
                                   style: TextStyle(color: Colors.grey),
                                 ),
                               ],
@@ -293,9 +304,9 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                           itemBuilder: (context, index) {
                             final player = players[index];
                             final isSelected =
-                                selectedPlayers[player['id']] ?? false;
-                            final isCaptain = player['id'] == captainId;
-                            final isViceCaptain = player['id'] == viceCaptainId;
+                                selectedPlayers[player.id] ?? false;
+                            final isCaptain = player.id == captainId;
+                            final isViceCaptain = player.id == viceCaptainId;
                             return Card(
                               margin: EdgeInsets.all(8),
                               shape: RoundedRectangleBorder(
@@ -315,11 +326,10 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                       vertical: 8, horizontal: 0),
                                   leading: CircleAvatar(
                                     radius: 30,
-                                    backgroundImage:
-                                        NetworkImage(player['photo']),
+                                    backgroundImage: NetworkImage(player.photo),
                                   ),
                                   title: Text(
-                                    getFormattedPlayerName(player['name']),
+                                    getFormattedPlayerName(player.name),
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -331,7 +341,9 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "${player['role'].toString().capitalizeFirstLetter()}",
+                                        player.role
+                                            .toString()
+                                            .capitalizeFirstLetter(),
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                           fontSize: 14,
@@ -340,7 +352,7 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
-                                        "${player['credits']} Credits",
+                                        "${player.credits} Credits",
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                           fontSize: 14,
@@ -356,23 +368,20 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                       TextButton(
                                         onPressed: () {
                                           setState(() {
-                                            if (captainId == player['id']) {
+                                            if (captainId == player.id) {
                                               captainId = null;
-                                              userCredits +=
-                                                  player['credits'] as int;
+                                              userCredits += player.credits;
                                             } else {
-                                              captainId = player['id'];
-                                              if (viceCaptainId ==
-                                                  player['id']) {
+                                              captainId = player.id;
+                                              if (viceCaptainId == player.id) {
                                                 viceCaptainId = null;
                                               }
                                               if (!(selectedPlayers[
-                                                      player['id']] ??
+                                                      player.id] ??
                                                   false)) {
-                                                selectedPlayers[player['id']] =
+                                                selectedPlayers[player.id] =
                                                     true;
-                                                userCredits -=
-                                                    player['credits'] as int;
+                                                userCredits -= player.credits;
                                               }
                                             }
                                           });
@@ -387,22 +396,20 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                       TextButton(
                                         onPressed: () {
                                           setState(() {
-                                            if (viceCaptainId == player['id']) {
+                                            if (viceCaptainId == player.id) {
                                               viceCaptainId = null;
-                                              userCredits +=
-                                                  player['credits'] as int;
+                                              userCredits += player.credits;
                                             } else {
-                                              viceCaptainId = player['id'];
-                                              if (captainId == player['id']) {
+                                              viceCaptainId = player.id;
+                                              if (captainId == player.id) {
                                                 captainId = null;
                                               }
                                               if (!(selectedPlayers[
-                                                      player['id']] ??
+                                                      player.id] ??
                                                   false)) {
-                                                selectedPlayers[player['id']] =
+                                                selectedPlayers[player.id] =
                                                     true;
-                                                userCredits -=
-                                                    player['credits'] as int;
+                                                userCredits -= player.credits;
                                               }
                                             }
                                           });
@@ -423,30 +430,24 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
                                         onPressed: () {
                                           setState(() {
                                             if (isSelected) {
-                                              selectedPlayers
-                                                  .remove(player['id']);
-                                              userCredits +=
-                                                  player['credits'] as int;
-                                              if (viceCaptainId ==
-                                                  player['id']) {
+                                              selectedPlayers.remove(player.id);
+                                              userCredits += player.credits;
+                                              if (viceCaptainId == player.id) {
                                                 setState(() {
                                                   viceCaptainId = null;
                                                 });
                                               }
-                                              if (captainId == player['id']) {
+                                              if (captainId == player.id) {
                                                 setState(() {
                                                   captainId = null;
                                                 });
                                               }
                                             } else if (canAddPlayer(
-                                                player['id'],
-                                                player['credits'])) {
-                                              selectedPlayers[player['id']] =
-                                                  true;
-                                              userCredits -=
-                                                  player['credits'] as int;
+                                                player.id, player.credits)) {
+                                              selectedPlayers[player.id] = true;
+                                              userCredits -= player.credits;
                                             } else if (userCredits >=
-                                                player['credits']) {
+                                                player.credits) {
                                               print(player);
                                               showSnackbar(context,
                                                   "Max players from a team reached!");
@@ -473,7 +474,7 @@ class _CreateTeamState extends State<CreateTeam> with TickerProviderStateMixin {
       floatingActionButton: FloatingActionButton(
         onPressed: isTeamComplete
             ? () async {
-                await createTeam();
+                await createTeam(match);
               }
             : () {
                 if (selectedPlayers.length != 11) {

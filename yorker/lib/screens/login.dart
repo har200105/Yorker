@@ -64,7 +64,7 @@ class LoginPage extends ConsumerWidget {
                     controller: passwordController,
                     obscureText: isObscured,
                     decoration: InputDecoration(
-                      hintText: 'Password',
+                      hintText: '*******',
                       suffixIcon: IconButton(
                         icon: Icon(
                           isObscured ? Icons.visibility : Icons.visibility_off,
@@ -89,7 +89,7 @@ class LoginPage extends ConsumerWidget {
               ElevatedButton(
                 onPressed: loginUser,
                 child: const Text(
-                  'LOGIN',
+                  'Let\'s Play',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.black,

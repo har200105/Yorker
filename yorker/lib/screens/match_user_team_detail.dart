@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:yorker/models/user_team.dart';
+import 'package:yorker/providers/user.team.provider.dart';
 
-import 'package:yorker/repository/auth.local.repository.dart';
-
-class TeamDetailsPage extends StatefulWidget {
+class TeamDetailsPage extends ConsumerStatefulWidget {
   final String teamId;
 
   const TeamDetailsPage({super.key, required this.teamId});
@@ -14,140 +13,200 @@ class TeamDetailsPage extends StatefulWidget {
   _TeamDetailsPageState createState() => _TeamDetailsPageState();
 }
 
-class _TeamDetailsPageState extends State<TeamDetailsPage> {
-  late Future<Map<String, dynamic>> _teamDetails;
-
-  Future<Map<String, dynamic>> fetchTeamDetails(String teamId) async {
-    final String? token = await LocalStorage.getToken();
-    final url = 'http://13.127.41.3/api/v1/user-team/players/$teamId';
-
-    final response = await http
-        .get(Uri.parse(url), headers: {'Authorization': 'Bearer $token'});
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load team details');
-    }
-  }
-
+class _TeamDetailsPageState extends ConsumerState<TeamDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _teamDetails = fetchTeamDetails(widget.teamId);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userTeamProvider.notifier).fetchPlayersByTeamId(widget.teamId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final userTeamState = ref.watch(userTeamProvider);
+
+    if (userTeamState.isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.tealAccent),
+      );
+    }
+
+    final UserTeam userTeam =
+        ref.watch(userTeamProvider.notifier).getUserTeamById(widget.teamId);
+
+    if (userTeam.players == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.tealAccent),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Team Details")),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: _teamDetails,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData) {
-            return const Center(child: Text('No data available'));
-          }
-
-          var team = snapshot.data!;
-          var players = team['user_team_players'] ?? [];
-          var isScoredComputed = team['isScoredComputed'];
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                if (isScoredComputed)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Points Obtained: ${team['pointsObtained']}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                      Text(
-                        'Leaderboard Rank: ${team['leaderBoardRank']}',
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                Column(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            if (userTeam.isScoredComputed == true)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-                    if (!isScoredComputed)
-                      const Text(
-                        'Match is yet to complete.',
-                        style: TextStyle(color: Colors.red, fontSize: 16),
-                      ),
                     Text(
-                      'Match Name: ${team['match']['name']}',
+                      '🏆 Points Obtained: ${userTeam.pointsObtained}',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '📊 Leaderboard Rank: ${userTeam.leaderBoardRank}',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+            if (userTeam.isScoredComputed == false)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  '⚠️ Score is yet to be computed.',
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🏟 Match Name: ${userTeam.match.name}',
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '📍 Venue: ${userTeam.match.venue}',
                       style: const TextStyle(fontSize: 16),
                     ),
                     Text(
-                      'Venue: ${team['match']['venue']}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      'Date: ${DateFormat('MMM dd yyyy').format(DateTime.parse(team['match']['date']))}',
+                      '📅 Date: ${DateFormat('MMM dd, yyyy').format(userTeam.match.date)}',
                       style: const TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Players:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: players.length,
-                    itemBuilder: (context, index) {
-                      var player = players[index];
-                      return Card(
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: ListTile(
-                          title: Text(player['player']['name']),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  'Role: ${player['player']['role']} | Credits: ${player['player']['credits']}'),
-                              if (isScoredComputed)
-                                Text('Points: ${player['points']}'),
-                            ],
-                          ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (player['isCaptain'] == true)
-                                const Text('Captain',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.green)),
-                              if (player['isViceCaptain'] == true)
-                                const Text('Vice Captain',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+              ),
             ),
-          );
-        },
+            const SizedBox(height: 20),
+            const Text(
+              'Players',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: userTeam.players!.length,
+                itemBuilder: (context, index) {
+                  var player = userTeam.players![index];
+
+                  return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(12),
+                      leading: CircleAvatar(
+                        radius: 28,
+                        backgroundImage: NetworkImage(player.player.photo),
+                      ),
+                      title: Text(
+                        player.player.name,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Role: ${player.player.role} | Credits: ${player.player.credits}',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey.shade700),
+                          ),
+                          if (userTeam.isScoredComputed == true)
+                            Text(
+                              'Points: ${player.points}',
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.teal.shade700),
+                            ),
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (player.isCaptain ?? false)
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'C',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (player.isViceCaptain ?? false)
+                            Container(
+                              width: 30,
+                              height: 30,
+                              decoration: BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'VC',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
