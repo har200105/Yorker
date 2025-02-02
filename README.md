@@ -5,6 +5,8 @@ A MVP app for a cricket fantasy app , made to understand how fantasy cricket app
 
 Just a try effort , Adding more features and improving it :)
 
+You can use the Android App at : https://drive.google.com/file/d/18ThPfU96DCsunslg69O-iNO2-D6xAsFI/view?usp=sharing
+
 # Screenshots of the project
 
 ![alt text](./screenshots/1.jpeg)
