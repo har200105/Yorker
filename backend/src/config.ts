@@ -10,6 +10,8 @@ class Config {
   public JWT_TOKEN: string | undefined;
   public GATEWAY_JWT_TOKEN: string | undefined;
   public REDIS_HOST: string | undefined;
+  public ACCESS_TOKEN_SECRET_KEY: string | undefined;
+  public REFRESH_TOKEN_SECRET_KEY: string | undefined;
 
   constructor() {
     this.NODE_ENV = process.env.NODE_ENV || '';
@@ -18,6 +20,9 @@ class Config {
     this.RABBITMQ_ENDPOINT = process.env.RABBITMQ_ENDPOINT || '';
     this.PSQL_DB = process.env.PSQL_DB || '';
     this.REDIS_HOST = process.env.REDIS_HOST || '';
+    this.ACCESS_TOKEN_SECRET_KEY = process.env.ACCESS_TOKEN_SECRET_KEY || '';
+    this.REFRESH_TOKEN_SECRET_KEY = process.env.REFRESH_TOKEN_SECRET_KEY || '';
+
   }
 }
 

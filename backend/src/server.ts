@@ -14,6 +14,7 @@ import { associate } from './models';
 import { UserModel } from './models/user';
 import { createConnection } from './queues/connection';
 import { subscribeMessages } from './queues/subscriber';
+import { config } from './config';
 
 
 const SERVER_PORT = 4002;
@@ -54,7 +55,7 @@ function securityMiddleware(app: Application): void {
   app.use(async (req: Request, _res: Response, next: NextFunction) => {
     if (req?.headers?.authorization) {
       const token = req.headers.authorization.split(' ')[1];
-      const payload = verify(token, "your_access_token_secret") as any;
+      const payload = verify(token, config.ACCESS_TOKEN_SECRET_KEY!) as any;
       const user = await UserModel.findByPk(payload.id, {
         attributes: { exclude: ['password'] },
         raw: true

@@ -2,9 +2,10 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { compare, hash } from "bcryptjs";
 import { UserInstance, UserModel } from "../models/user";
+import { config } from "../config";
 
-const ACCESS_TOKEN_SECRET_KEY = "your_access_token_secret";
-const REFRESH_TOKEN_SECRET_KEY = "your_refresh_token_secret";
+const ACCESS_TOKEN_SECRET_KEY = config.ACCESS_TOKEN_SECRET_KEY;
+const REFRESH_TOKEN_SECRET_KEY = config.REFRESH_TOKEN_SECRET_KEY;
 
 export const getUser = async(req: Request,res: Response): Promise<void> => {
   if(req?.currentUser?.id){
@@ -55,13 +56,13 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 const generateTokens = (user: UserInstance) => {
   const accessToken = jwt.sign(
     { id: user.id, username: user.username },
-    ACCESS_TOKEN_SECRET_KEY,
+    ACCESS_TOKEN_SECRET_KEY!,
     { expiresIn: "1d" }
   );
 
   const refreshToken = jwt.sign(
     { id: user.id, username: user.username },
-    REFRESH_TOKEN_SECRET_KEY,
+    REFRESH_TOKEN_SECRET_KEY!,
     { expiresIn: "10d" }
   );
 
