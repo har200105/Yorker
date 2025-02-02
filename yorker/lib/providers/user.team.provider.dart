@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yorker/constants.dart';
 import 'package:yorker/models/user_team.dart';
 import 'package:yorker/repository/user.team.repository.dart';
 
 final userTeamRepositoryProvider = Provider((ref) {
-  return UserTeamRepository(baseUrl: 'http://10.106.150.152:4002');
+  return UserTeamRepository(baseUrl: baseUrl);
 });
 
 class UserTeamState {

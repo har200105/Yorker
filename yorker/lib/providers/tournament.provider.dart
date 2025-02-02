@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yorker/constants.dart';
 import 'package:yorker/models/tournament.dart';
 import 'package:yorker/repository/tournament.repository.dart';
 
 final tournamentRepositoryProvider = Provider((ref) {
-  return TournamentRepository(baseUrl: 'http://13.127.41.3');
+  return TournamentRepository(baseUrl: baseUrl);
 });
 
 final tournamentsProvider = FutureProvider<List<Tournament>>((ref) async {

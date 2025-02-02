@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:yorker/constants.dart';
 import 'package:yorker/repository/auth.local.repository.dart';
 import 'dart:convert';
 import 'package:yorker/screens/public_user_team_detail.dart';
@@ -32,7 +33,7 @@ class _MatchLeaderBoardState extends State<MatchLeaderBoard> {
 
       final response = await http.get(
         Uri.parse(
-          'http://13.127.41.3/api/v1/match/leader-board/${widget.matchId}',
+          '$baseUrl/api/v1/match/leader-board/${widget.matchId}',
         ),
         headers: {"Authorization": "Bearer $token"},
       );

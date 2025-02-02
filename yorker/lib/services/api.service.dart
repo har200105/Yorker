@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:yorker/constants.dart';
 
 class ApiService {
-  final String baseUrl = 'http://13.127.41.3';
-
   Future<String?> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/v1/user/login'),

@@ -117,6 +117,8 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
     //   return;
     // }
 
+    console.log("running");
+
     const userTeams = await UserTeamModel.findAll({
       where: { matchId },
       include: [
@@ -130,6 +132,8 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
         },
       ],
     });
+
+    console.log('leader board');
 
 
     const leaderboard = userTeams.map((team) => {
