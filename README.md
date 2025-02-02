@@ -8,6 +8,7 @@ Just a try effort , Adding more features and improving it :)
 # Screenshots of the project
 
 ![alt text](./screenshots/1.jpeg)
+![alt text](./screenshots/2.jpeg)
 ![alt text](./screenshots/a.jpeg)
 ![alt text](./screenshots/b.jpeg)
 ![alt text](./screenshots/d.jpeg)
