@@ -70,52 +70,72 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
+                                // Centering the match name
                                 Text(
                                   match.name,
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.teal,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 12),
+
+                                // Displaying team logos and name centered
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Image.network(
                                       match.teamA.logo,
-                                      width: 40,
-                                      height: 40,
+                                      width: 50,
+                                      height: 50,
                                       fit: BoxFit.cover,
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 12),
                                     Text(
                                       'vs',
                                       style: TextStyle(
                                           color: Colors.deepPurple,
-                                          fontSize: 16),
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 12),
                                     Image.network(
                                       match.teamB.logo,
-                                      width: 40,
-                                      height: 40,
+                                      width: 50,
+                                      height: 50,
                                       fit: BoxFit.cover,
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 16),
+
+                                // Displaying the venue and date centered
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'Venue: ${match.venue}',
+                                        style:
+                                            TextStyle(color: Colors.grey[700]),
+                                      ),
+                                      Text(
+                                        'Date: ${DateFormat('MMM dd, yyyy').format(match.date)}',
+                                        style:
+                                            TextStyle(color: Colors.grey[700]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  'Venue: ${match.venue}',
-                                  style: TextStyle(color: Colors.grey[700]),
-                                ),
-                                Text(
-                                  'Date: ${DateFormat('MMM dd, yyyy').format(match.date)}',
-                                  style: TextStyle(color: Colors.grey[700]),
-                                ),
+
                                 Text(
                                   'Status: ${match.status.toUpperCase()}',
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: match.status == 'scheduled'
@@ -124,9 +144,10 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 16),
+
                                 Row(
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                      MainAxisAlignment.spaceAround,
                                   children: [
                                     if (!match.isCompleted)
                                       Expanded(
@@ -135,7 +156,7 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                             foregroundColor: Colors.white,
                                             backgroundColor: Colors.teal,
                                             padding: const EdgeInsets.symmetric(
-                                                vertical: 12, horizontal: 24),
+                                                vertical: 12, horizontal: 12),
                                           ),
                                           onPressed: () {
                                             Navigator.push(
@@ -195,7 +216,7 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                       ),
                                     ),
                                   ],
-                                )
+                                ),
                               ],
                             ),
                           ),
