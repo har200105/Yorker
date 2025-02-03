@@ -9,7 +9,7 @@ You can use the Android App at: [Download APK](https://drive.google.com/file/d/1
 
 ## Video of the project
 
-![Watch the video](https://youtube.com/shorts/Qf9ECKKZ1RE)
+[Watch the video](https://youtube.com/shorts/Qf9ECKKZ1RE)
 
 
 # Screenshots of the project
