@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:yorker/constants.dart';
 import 'dart:convert';
 
 import 'package:yorker/repository/auth.local.repository.dart';
@@ -19,7 +20,7 @@ class _PublicTeamDetailsPageState extends State<PublicTeamDetailsPage> {
 
   Future<Map<String, dynamic>> fetchTeamDetails(String teamId) async {
     final String? token = await LocalStorage.getToken();
-    final url = 'http://10.106.150.152:4002/api/v1/user-team/players/$teamId';
+    final url = '$baseUrl/api/v1/user-team/players/$teamId';
 
     final response = await http
         .get(Uri.parse(url), headers: {'Authorization': 'Bearer $token'});
