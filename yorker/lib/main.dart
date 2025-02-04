@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
               contentPadding: const EdgeInsets.all(27),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
-                  color: Colors.grey.shade300,
+                  color: Colors.grey.shade900,
                   width: 3,
                 ),
                 borderRadius: BorderRadius.circular(10),

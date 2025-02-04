@@ -16,9 +16,9 @@ class LoginPage extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
     final obscurePassword = ValueNotifier<bool>(true);
 
-    void loginUser() {
+    void loginUser() async {
       if (formKey.currentState!.validate()) {
-        ref.read(loginProvider.notifier).login(
+        await ref.read(loginProvider.notifier).login(
               context,
               userNameController.text,
               passwordController.text,
@@ -50,7 +50,7 @@ class LoginPage extends ConsumerWidget {
               TextFormField(
                 controller: userNameController,
                 decoration: const InputDecoration(
-                  hintText: 'akipiD',
+                  hintText: 'username',
                 ),
                 validator: (value) {
                   return null;
@@ -102,11 +102,11 @@ class LoginPage extends ConsumerWidget {
                   loginState.error!,
                   style: const TextStyle(color: Colors.red),
                 ),
-              if (loginState.token != null)
-                Text(
-                  'Login successful!',
-                  style: const TextStyle(color: Colors.green),
-                ),
+              // if (loginState.token != null)
+              //   Text(
+              //     'Login successful!',
+              //     style: const TextStyle(color: Colors.green),
+              //   ),
             ],
           ),
         ),
