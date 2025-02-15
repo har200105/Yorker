@@ -33,6 +33,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
         state = LoginState(error: 'Login failed');
       }
     } catch (e) {
+      print("Error : ${e.toString()}");
       state = LoginState(error: 'Error occurred during login');
     }
   }

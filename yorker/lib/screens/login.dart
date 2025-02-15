@@ -17,12 +17,15 @@ class LoginPage extends ConsumerWidget {
     final obscurePassword = ValueNotifier<bool>(true);
 
     void loginUser() async {
+      print("here");
       if (formKey.currentState!.validate()) {
         await ref.read(loginProvider.notifier).login(
               context,
               userNameController.text,
               passwordController.text,
             );
+      } else {
+        print("failed");
       }
     }
 
