@@ -157,9 +157,6 @@ const populateDummyData = async () => {
       createdTeams.push(team);
     }
 
-    console.log('Teams and players created.');
-
-    // Create matches
     const matchesData = [
       { teamA: 'India', teamB: 'Bangladesh', date: '2025-02-20' },
       { teamA: 'India', teamB: 'Pakistan', date: '2025-02-23' },

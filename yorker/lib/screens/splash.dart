@@ -18,7 +18,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
     Future.delayed(const Duration(seconds: 3), () async {
       final isAuthenticated = await ref.read(authProvider.future);
-      print("isAuthenticated : $isAuthenticated");
       if (isAuthenticated) {
         if (mounted) {
           Navigator.pushReplacement(

@@ -48,13 +48,9 @@ class MatchNotifier extends StateNotifier<MatchState> {
 
   Future<void> fetchPlayers(String matchId) async {
     try {
-      print("called");
       state = state.copyWith(isLoading: true, error: null);
 
       final matchWithPlayers = await repository.fetchMatchById(matchId);
-      print("object");
-      print(matchWithPlayers.players);
-      print("matchWithPlayers");
 
       final updatedMatches = state.matches.map((m) {
         if (m.id == matchId) {
@@ -62,11 +58,9 @@ class MatchNotifier extends StateNotifier<MatchState> {
         }
         return m;
       }).toList();
-      print("done");
 
       state = state.copyWith(matches: updatedMatches, isLoading: false);
     } catch (e) {
-      print("Error : $e");
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }

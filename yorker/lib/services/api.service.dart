@@ -12,10 +12,6 @@ class ApiService {
         'password': password,
       }),
     );
-    print(username);
-    print(password);
-
-    print("response.body : ${response.body}");
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);

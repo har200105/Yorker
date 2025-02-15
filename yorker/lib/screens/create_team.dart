@@ -92,8 +92,6 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
         body: json.encode(payload),
       );
 
-      print(response.statusCode);
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -203,9 +201,6 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
           .where((player) => player.teamId == match.teamBId)
           .toList()
     };
-    print("teamPlayers ");
-    print(teamPlayers);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Create Your Fantasy Team'),
@@ -448,7 +443,6 @@ class _CreateTeamState extends ConsumerState<CreateTeam>
                                               userCredits -= player.credits;
                                             } else if (userCredits >=
                                                 player.credits) {
-                                              print(player);
                                               showSnackbar(context,
                                                   "Max players from a team reached!");
                                             } else {

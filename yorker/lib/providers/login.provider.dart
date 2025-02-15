@@ -21,9 +21,7 @@ class LoginNotifier extends StateNotifier<LoginState> {
     try {
       final token = await apiService.login(username, password);
       if (token != null) {
-        print("Login  token: $token");
         await LocalStorage.saveToken(token);
-        print("saved to local storage");
         state = LoginState(token: token);
         if (context.mounted) {
           Navigator.pushReplacement(

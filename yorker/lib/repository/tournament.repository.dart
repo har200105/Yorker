@@ -10,10 +10,7 @@ class TournamentRepository {
   Future<List<Tournament>> fetchTournaments() async {
     final response =
         await http.get(Uri.parse('$baseUrl/api/v1/tournament/all'));
-    print('$baseUrl/api/v1/tournament/all');
-    print(response.body);
     if (response.statusCode == 200) {
-      print("here");
       final List<dynamic> data = json.decode(response.body);
       return data
           .map((tournamentJson) => Tournament.fromJson(tournamentJson))

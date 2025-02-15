@@ -16,11 +16,11 @@ import { createConnection } from './queues/connection';
 import { subscribeMessages } from './queues/subscriber';
 import { config } from './config';
 
-
 const SERVER_PORT = 4002;
 const log: Logger = winstonLogger('yorkerServer', 'debug');
 
 export let serverChannel: Channel;
+let httpServer: http.Server;
 
 declare global {
   namespace Express {
@@ -30,6 +30,42 @@ declare global {
   }
 }
 
+process.on('uncaughtException', (error) => {
+  log.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  log.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('SIGTERM', async () => {
+  log.info('SIGTERM signal received. Closing server gracefully...');
+  await shutdown();
+});
+
+process.on('SIGINT', async () => {
+  log.info('SIGINT signal received. Closing server gracefully...');
+  await shutdown();
+});
+
+async function shutdown() {
+  try {
+    if (serverChannel) {
+      await serverChannel.close();
+      log.info('AMQP Channel closed');
+    }
+    if (httpServer) {
+      httpServer.close(() => {
+        log.info('HTTP server closed');
+        process.exit(0);
+      });
+    }
+  } catch (error) {
+    log.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
 
 export function start(app: Application): void {
   securityMiddleware(app);
@@ -54,28 +90,22 @@ function securityMiddleware(app: Application): void {
   );
   app.use(async (req: Request, _res: Response, next: NextFunction) => {
     if (req?.headers?.authorization) {
-      const token = req.headers.authorization.split(' ')[1];
-      const payload = verify(token, config.ACCESS_TOKEN_SECRET_KEY!) as any;
-      const user = await UserModel.findByPk(payload.id, {
-        attributes: { exclude: ['password'] },
-        raw: true
-      });
-      req.currentUser = user;
+      try {
+        const token = req.headers.authorization.split(' ')[1];
+        const payload = verify(token, config.ACCESS_TOKEN_SECRET_KEY!) as any;
+        const user = await UserModel.findByPk(payload.id, {
+          attributes: { exclude: ['password'] },
+          raw: true
+        });
+        req.currentUser = user;
+      } catch (error) {
+        log.error('JWT Verification Error:', error);
+      }
     }
     next();
   });
   app.use('/health', (_req: Request, res: Response): void => {
-    try {
-      res.status(200).json({
-        status: 'healthy',
-        timestamp: new Date().toISOString()
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        status: 'unhealthy',
-        error: error?.message
-      });
-    }
+    res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
   });
 }
 
@@ -90,26 +120,30 @@ function routesMiddleware(app: Application): void {
 }
 
 async function startQueues(): Promise<void> {
-  serverChannel = await createConnection() as Channel;
-  await subscribeMessages(serverChannel);
+  try {
+    serverChannel = await createConnection() as Channel;
+    await subscribeMessages(serverChannel);
+  } catch (error) {
+    log.error('Error initializing queues:', error);
+  }
 }
 
 function errorHandler(app: Application): void {
   app.use((error: any, _req: Request, res: Response, next: NextFunction) => {
-    log.log('error', `${error.comingFrom}:`, error);
-    res.status(error.statusCode).json(error);
+    log.error(`${error.comingFrom}:`, error);
+    res.status(error.statusCode || 500).json({ error: error.message });
     next();
   });
 }
 
 function startServer(app: Application): void {
   try {
-    const httpServer: http.Server = new http.Server(app);
-    log.info(`Server has started with process id ${process.pid}`);
+    httpServer = new http.Server(app);
+    log.info(`Server has started with process ID ${process.pid}`);
     httpServer.listen(SERVER_PORT, () => {
       log.info(`Server running on port ${SERVER_PORT}`);
     });
   } catch (error) {
-    log.log('error', 'startServer() method error:', error);
+    log.error('Error starting server:', error);
   }
 }

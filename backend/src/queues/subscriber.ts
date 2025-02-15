@@ -19,7 +19,6 @@ const subscribeMessages = async (channel: Channel): Promise<void> => {
       const processScoresQueue = await channel.assertQueue(queueName, { durable: true, autoDelete: false });
       await channel.bindQueue(processScoresQueue.queue, exchangeName, routingKey);
       channel.consume(processScoresQueue.queue, async (msg: ConsumeMessage | null) => {
-        console.log("msg :",JSON.parse(msg!.content.toString()));
         const { matchId } = JSON.parse(msg!.content.toString());
         log.info(`Payload received in ${queueName} : ${matchId}`);
         processTeamScores(matchId);

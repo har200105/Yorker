@@ -71,8 +71,6 @@ export const getPlayersByMatch = async (req: Request, res: Response): Promise<vo
       nest:true
     }) as any;
 
-    console.log("match.teamA :",match.teamA);
-
     if (!match) {
       res.status(404).json({ error: "Match with the given ID not found" });
       return;
@@ -112,12 +110,6 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       return;
     }
 
-    // if(!match.dataValues.matchWonById){
-    //   res.status(400).json({error: "Match is yet to be completed"});
-    //   return;
-    // }
-
-    console.log("running");
 
     const userTeams = await UserTeamModel.findAll({
       where: { matchId },
@@ -133,11 +125,8 @@ export const getMatchLeaderBoard = async (req: Request, res: Response): Promise<
       ],
     });
 
-    console.log('leader board');
-
 
     const leaderboard = userTeams.map((team) => {
-      // const userTeamPlayers = team.get('userTeamPlayers') as any;
       const user = team.get('user') as any;
       const totalPoints = team.dataValues.pointsObtained ?? 0;
 
@@ -167,19 +156,10 @@ export const submitMatchScores = async (req: Request, res: Response): Promise<vo
 
   const match = await MatchModel.findByPk(matchId);
 
-  console.log("matcjjjjjjjh :",match);
-
   if (!match) {
     res.status(500).json({ error: "Match not found" });
     return;
   }
-
-  // if(match.dataValues.status == "completed"){
-  //   res.status(413).json({error: "Match is already completed"});
-  //   return;
-  // }
-
-  console.log("not completed");
 
   await match.update({
     scoreboard: scoreBoard,
@@ -190,8 +170,6 @@ export const submitMatchScores = async (req: Request, res: Response): Promise<vo
     isTie,
     tossWonById: tossWonBy
   });
-
-  console.log("saved");
 
   if (!scoreBoard || !Array.isArray(scoreBoard)) {
     res.status(400).json({ error: "Invalid or missing scoreBoard data" });

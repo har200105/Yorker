@@ -29,7 +29,6 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
   Widget build(BuildContext context) {
     final userTeamState = ref.watch(userTeamProvider);
 
-    print("called");
     if (userTeamState.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -96,7 +95,6 @@ class _UserTeamsListPageState extends ConsumerState<UserTeamsListPage> {
             itemCount: userTeamState.userTeams.length,
             itemBuilder: (context, index) {
               var team = userTeamState.userTeams[index];
-              print(team);
               bool isScoredComputed = team.isScoredComputed ?? false;
 
               return Card(

@@ -57,7 +57,6 @@ class _MatchLeaderBoardState extends State<MatchLeaderBoard> {
   }
 
   void viewTeamPlayers(String? teamId) {
-    print("teamId $teamId");
     if (teamId != null) {
       Navigator.push(
         context,

@@ -6,7 +6,6 @@ import 'package:yorker/repository/auth.local.repository.dart';
 
 final authProvider = FutureProvider<bool>((ref) async {
   final String? token = await LocalStorage.getToken();
-  print("token : $token");
 
   if (token == null || token.isEmpty) {
     return false;
@@ -19,12 +18,7 @@ final authProvider = FutureProvider<bool>((ref) async {
     },
   );
 
-  print("eee");
-
-  print("response: ${response.body}");
-
   if (response.statusCode == 401 || response.statusCode >= 400) {
-    print("called /me api");
     await LocalStorage.clearToken();
     return false;
   }

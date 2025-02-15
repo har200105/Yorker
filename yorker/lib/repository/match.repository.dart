@@ -10,7 +10,6 @@ class MatchRepository {
   Future<List<Match>> fetchMatches(String tournamentId) async {
     final response =
         await http.get(Uri.parse('$baseUrl/api/v1/match/all/$tournamentId'));
-    print(response.body);
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -23,12 +22,8 @@ class MatchRepository {
   Future<Match> fetchMatchById(String matchId) async {
     final response =
         await http.get(Uri.parse('$baseUrl/api/v1/match/all-players/$matchId'));
-    print(response.body);
 
     if (response.statusCode == 200) {
-      print("response.body");
-      print(response.body);
-      print("----");
       final Match match = Match.fromJson(jsonDecode(response.body));
       return match;
     } else {

@@ -56,8 +56,6 @@ class _PublicTeamDetailsPageState extends State<PublicTeamDetailsPage> {
           var team = snapshot.data!;
           var players = team['players'] ?? [];
           var isScoredComputed = team['isScoredComputed'];
-          print(players.length);
-          print(players.runtimeType);
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -139,8 +137,6 @@ class _PublicTeamDetailsPageState extends State<PublicTeamDetailsPage> {
                     itemCount: players.length,
                     itemBuilder: (context, index) {
                       var player = players[index];
-                      print('player : $player');
-                      print(player["photo"]);
 
                       return Card(
                         elevation: 4,

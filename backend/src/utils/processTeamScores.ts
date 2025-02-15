@@ -2,18 +2,16 @@ import { Transaction } from 'sequelize';
 import { sequelize } from '../database';
 import { UserTeamModel, UserTeamPlayerModel } from '../models/userTeam';
 import { MatchModel } from '../models/match';
+import { client } from '../redis/redis.connection';
 
 const processTeamScores = async (matchId: string): Promise<void> => {
-    console.log("processTeamScores : ", matchId);
 
     const match = await MatchModel.findByPk(matchId);
     const scoreBoard = match?.dataValues.scoreboard;
 
     if (!scoreBoard || !scoreBoard.length) {
-        console.log("its empty");
         return;
     }
-    console.log(scoreBoard);
 
     const transaction = await sequelize.transaction({
         isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ
@@ -113,6 +111,15 @@ const processTeamScores = async (matchId: string): Promise<void> => {
         );
 
         await transaction.commit();
+        try{
+            if(!client.isOpen){
+                client.connect();
+            }
+            const cacheKey = `matches:tournament:${match.dataValues.tournamentId}`;
+            await client.del(cacheKey);
+        }catch(error){
+            console.error(`Error in removing match cache : ${error}`);
+        }
     } catch (error) {
         console.error(`Error in processing team scores : ${error}`);
         await transaction.rollback();
