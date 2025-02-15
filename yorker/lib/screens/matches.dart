@@ -113,7 +113,6 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Displaying the venue and date centered
                                 Align(
                                   alignment: Alignment.center,
                                   child: Column(
@@ -171,6 +170,7 @@ class _MatchListScreenState extends ConsumerState<MatchListScreen> {
                                           child: const Text('Create Team'),
                                         ),
                                       ),
+                                    const SizedBox(width: 5),
                                     if (match.isCompleted)
                                       Expanded(
                                         child: TextButton(
